@@ -322,6 +322,7 @@
                 alert("TODO: open screen 45: External - Contact Holder of Available Site in a different tab page.");
             },
             calculateRemainders: function(features){
+                console.log('in calculateRemainders')
                 let remainders = this.proposal.proposal_apiary.site_remainders
                 let num_remain_south_west = 0
                 let num_remain_remote = 0
@@ -337,9 +338,9 @@
                 }
 
                 for (let i=0; i<features.length; i++){
-                    if (features[i].get('category') == 'south_west'){
+                    if (features[i].get('site_category') == 'south_west'){
                         num_remain_south_west = num_remain_south_west - 1
-                    } else if (features[i].get('category') == 'remote'){
+                    } else if (features[i].get('site_category') == 'remote'){
                         num_remain_remote = num_remain_remote - 1
                     }
                 }
@@ -362,13 +363,15 @@
 
                 // Get all the features drawn
                 let features = this.drawingLayerSource.getFeatures()
-                this.calculateRemainders(features)
+                console.log('features.length: ' + features.length)
 
                 // Insert data into the table
                 for(let i=0; i<features.length; i++){
                     this.$refs.site_locations_table.vmDataTable.row.add(features[i]).draw();
-                    console.log(features[i].get('category'));
+                    console.log('site_category: ' + features[i].get('site_category'));
                 }
+
+                this.calculateRemainders(features)
                 // Update proposal obj, which is sent to the server when save/submit.
                 //this.proposal.proposal_apiary.apiary_sites = features
                 //this.updateApiarySitesData()
@@ -533,7 +536,7 @@
                     let feature = attributes.feature;
                     feature.setId(vm.uuidv4());
                     feature.set("source", "draw");
-                    feature.set('category', vm.current_category) // For now, we add category, either south_west/remote to the feature according to the selection of the UI
+                    feature.set('site_category', vm.current_category) // For now, we add category, either south_west/remote to the feature according to the selection of the UI
                     feature.getGeometry().on("change", function() {
                         console.log("Start Modify feature: " + feature.getId());
 
@@ -586,7 +589,7 @@
                 let feature = new Feature(new Point([lon,lat]));
                 feature.setId(this.uuidv4());
                 feature.set("source", "form");
-                feature.set('category', this.current_category) // For now, we add category, either south_west/remote to the feature according to the selection of the UI
+                feature.set('site_category', this.current_category) // For now, we add category, either south_west/remote to the feature according to the selection of the UI
                 this.drawingLayerSource.addFeature(feature);
 
                 console.log('new feature added to the layer')
@@ -619,7 +622,7 @@
                  feature.setId(apiary_site.site_guid);
                  feature.id = apiary_site.id
                  feature.set("source", "form");
-            //     apiary_site = feature
+                 feature.set("site_category", apiary_site.site_category)
                  this.drawingLayerSource.addFeature(feature);
 
                  console.log('new feature added to the layer')

@@ -541,6 +541,19 @@ class ProposalApiaryViewSet(viewsets.ModelViewSet):
             print(traceback.print_exc())
             raise serializers.ValidationError(str(e))
 
+    @detail_route(methods=['POST',])
+    @basic_exception_handler
+    def final_approval(self, request, *args, **kwargs):
+        #import ipdb;ipdb.set_trace()
+        instance = self.get_object()
+        serializer = ProposedApprovalSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        instance.final_approval(request,serializer.validated_data)
+        #serializer = InternalProposalSerializer(instance,context={'request':request})
+        serializer_class = self.internal_apiary_serializer_class()
+        serializer = serializer_class(instance.proposal,context={'request':request})
+        return Response(serializer.data)
+
 
 class ApiaryReferralViewSet(viewsets.ModelViewSet):
     #queryset = Referral.objects.all()

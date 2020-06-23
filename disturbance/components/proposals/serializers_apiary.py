@@ -207,6 +207,7 @@ class OnSiteInformationSerializer(serializers.ModelSerializer):
 class ApiarySiteSerializer(serializers.ModelSerializer):
     proposal_apiary_id = serializers.IntegerField(write_only=True, required=False)
     site_category_id = serializers.IntegerField(write_only=True, required=False)
+    site_category = serializers.CharField(source='site_category.name', read_only=True)
     onsiteinformation_set = OnSiteInformationSerializer(read_only=True, many=True,)
     coordinates = serializers.SerializerMethodField()
     as_geojson = serializers.SerializerMethodField()
@@ -229,6 +230,7 @@ class ApiarySiteSerializer(serializers.ModelSerializer):
             'site_guid',
             'proposal_apiary_id',
             'site_category_id',
+            'site_category',
             'onsiteinformation_set',
             'coordinates',
             'as_geojson',

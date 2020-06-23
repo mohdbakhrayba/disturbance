@@ -101,6 +101,10 @@
                     this.addApiarySite(vm.apiary_site_geojson_array[i])
                 }
             },
+            viewAllTheFeatures: function() {
+                // Display all the features in the query source
+
+            },
             addApiarySite: function(apiary_site_geojson) {
                 let feature = (new GeoJSON()).readFeatures(apiary_site_geojson)
                 this.apiarySitesQuerySource.addFeatures(feature)

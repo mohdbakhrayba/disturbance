@@ -39,18 +39,11 @@
             </div>
         </div>
 
-<!--
-        <SiteSelection 
-            :apiary_sites_with_selection="temporary_use_apiary_sites" 
-       />
--->
-
     </div>
 </template>
 
 <script>
     import datatable from '@vue-utils/datatable.vue'
-    import SiteSelection from '@/components/common/apiary/component_site_selection.vue'
     import ComponentMap from '@/components/common/apiary/component_map.vue'
 
     export default {
@@ -184,7 +177,6 @@
         },
         components: {
             datatable,
-            SiteSelection,
             ComponentMap,
         },
         computed:{
