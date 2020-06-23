@@ -399,7 +399,7 @@ def save_proponent_data_apiary(proposal_obj, request, viewset):
                         serializer = ApiarySiteSerializer(a_site, data=feature)
                     except ApiarySite.DoesNotExist:
                         # Create new
-                        if feature['values_']['category'] == 'south_west':
+                        if feature['values_']['site_category'] == 'south_west':
                             category_obj = SiteCategory.objects.get(name='south_west')
                         else:
                             category_obj = SiteCategory.objects.get(name='remote')

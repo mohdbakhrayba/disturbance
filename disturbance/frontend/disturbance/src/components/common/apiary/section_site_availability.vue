@@ -1,5 +1,15 @@
 <template lang="html">
     <div class="row col-sm-12">
+        <div class="row col-sm-12">
+            <template v-if="is_external">
+                <!--button v-if="!creatingProposal" class="btn btn-primary pull-right" @click="openNewTemporaryUse">Site Transfer</button-->
+                <button 
+                    class="btn btn-primary pull-right" 
+                    @click="openNewSiteTransfer">
+                    Site Transfer
+                </button>
+            </template>
+        </div>
         <div class="col-sm-6">
             <datatable
                 ref="site_availability_table"
@@ -134,6 +144,65 @@
 
         },
         methods:{
+            _get_basic_data: function(){
+                let data = {
+                    'category': '',
+                    'profile': '', // TODO how to determine this?
+                    'district': '',
+                    //'application': '3',  // TODO Retrieve the id of the 'Temporary Use' type or handle it at the server side 
+                                         //      like if there is apiary_temporary_use attribute, it must be a temporary use application, or so.
+                    'sub_activity2': '',
+                    'region': '',
+                    'approval_level': '',
+                    'behalf_of': '',  // TODO how to determine this?
+                    'activity': '',
+                    'sub_activity1': '',
+                    'application_type_str': 'site_transfer',
+                    //'approval_id': this.approval_id,
+                }
+                return data
+            },
+
+            createProposal:function () {
+                console.log('createProposal');
+
+                let vm = this;
+                vm.creatingProposal = true;
+                let data = vm._get_basic_data();
+
+                vm.$http.post('/api/proposal.json', data).then(res => {
+                    vm.proposal = res.body;
+
+                    console.log('returned: ')
+                    console.log(vm.proposal)
+
+                    vm.$router.push({ name:"draft_proposal", params:{ proposal_id: vm.proposal.id }});
+                    vm.creatingProposal = false;
+                },
+                err => {
+                    console.log(err);
+                });
+            },
+
+            openNewSiteTransfer: function() {
+                let vm = this
+
+                swal({
+                    title: "Create Site Transfer Application",
+                    text: "Are you sure you want to create a new site transfer application?",
+                    type: "question",
+                    showCancelButton: true,
+                    confirmButtonText: 'Create'
+                }).then(
+                    () => {
+                        vm.createProposal();
+                    },
+                    (error) => {
+
+                    }
+                );
+            },
+
             loadApiarySites: async function(){
                 console.log('loadApiarySites');
 
@@ -146,12 +215,14 @@
                     (reject)=>{
                     },
                 )
-                this.addApiarySitesToMap()
+                this.addApiarySitesToMap(this.apiary_sites)
             },
-            addApiarySitesToMap: function() {
-                for (let i=0; i<this.apiary_sites.length; i++){
-                    this.apiary_site_geojson_array.push(this.apiary_sites[i].as_geojson)
+            addApiarySitesToMap: function(apiary_sites) {
+                for (let i=0; i<apiary_sites.length; i++){
+                    this.apiary_site_geojson_array.push(apiary_sites[i].as_geojson)
                 }
+
+                // Reload ComponentMap by assigning a new key value
                 this.component_map_key = uuid()
             },
             constructSitesTable: function(){

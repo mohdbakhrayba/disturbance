@@ -11,7 +11,11 @@
                 />
             </div>
             <div class="col-sm-6">
-                <ComponentMap />
+                <ComponentMap 
+                    ref="component_map"
+                    :apiary_site_geojson_array="apiary_site_geojson_array"
+                    :key="component_map_key"
+                />
             </div>
         </div>
 
@@ -24,22 +28,6 @@
 
     export default {
         props:{
-            // This is the object structure expedted for the following prop
-            // selected attribute is used as checkbox status
-            // [
-            //     {
-            //         apiary_site:{
-            //              id: 1,
-            //              site_guid: blahblahblah...,
-            //              available: false,
-            //              onsiteinformation_set: {...}
-            //         },
-            //         selected: true
-            //     }, 
-            //     {
-            //         ...
-            //     }
-            // ]
             apiary_sites_with_selection: {
                 type: Array,
                 default: function(){
@@ -52,6 +40,8 @@
         },
         data: function(){
             return{
+                component_map_key: '',
+                apiary_site_geojson_array: [],
                 dtHeaders: [
                     'Id',
                     '',

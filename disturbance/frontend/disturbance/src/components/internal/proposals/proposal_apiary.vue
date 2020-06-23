@@ -429,7 +429,17 @@
         </div>
         <ProposedDecline ref="proposed_decline" :processing_status="proposal.processing_status" :proposal_id="proposal.id" @refreshFromResponse="refreshFromResponse"></ProposedDecline>
         <AmendmentRequest ref="amendment_request" :proposal_id="proposal.id" @refreshFromResponse="refreshFromResponse"></AmendmentRequest>
-        <ProposedApproval ref="proposed_approval" :processing_status="proposal.processing_status" :proposal_id="proposal.id" :proposal_type='proposal.proposal_type' :isApprovalLevelDocument="isApprovalLevelDocument" :submitter_email="proposal.submitter_email" :applicant_email="applicant_email" @refreshFromResponse="refreshFromResponse"/>
+        <ProposedApproval 
+        ref="proposed_approval" 
+        :processing_status="proposal.processing_status" 
+        :proposal_apiary_id="apiaryProposal.id" 
+        :proposal_id="proposal.id" 
+        :proposal_type='proposal.proposal_type' 
+        :isApprovalLevelDocument="isApprovalLevelDocument" 
+        :submitter_email="proposal.submitter_email" 
+        :applicant_email="applicant_email" 
+        @refreshFromResponse="refreshFromResponse"
+        />
     </div>
 </template>
 <script>
@@ -442,7 +452,7 @@ import ProposedDecline from './proposal_proposed_decline.vue'
 import AmendmentRequest from './amendment_request.vue'
 import datatable from '@vue-utils/datatable.vue'
 import Requirements from './proposal_requirements.vue'
-import ProposedApproval from './proposed_issuance.vue'
+import ProposedApproval from './proposed_apiary_issuance.vue'
 import ApprovalScreen from './proposal_approval.vue'
 import CommsLogs from '@common-utils/comms_logs.vue'
 //import MoreReferrals from '@common-utils/more_referrals.vue'
