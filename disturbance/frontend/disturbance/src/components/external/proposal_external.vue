@@ -48,8 +48,19 @@
                     :is_external="true"
                     @button_text="button_text"
                 />
-
             </div>
+            <div v-else-if="proposal && proposal.application_type=='Site Transfer'">
+                <ApiarySiteTransfer
+                    v-if="proposal"
+                    :proposal="proposal"
+                    id="proposalStart"
+                    :showSections="sectionShow"
+                    ref="proposal_apiary"
+                    :is_external="true"
+                    @button_text="button_text"
+                />
+            </div>
+
             <div v-else>
                 <ProposalDisturbance v-if="proposal" :proposal="proposal" id="proposalStart" :showSections="sectionShow"></ProposalDisturbance>
                 <NewApply v-if="proposal" :proposal="proposal"></NewApply>
@@ -117,6 +128,7 @@
 <script>
 import ProposalDisturbance from '../form.vue'
 import ProposalApiary from '../form_apiary.vue'
+import ApiarySiteTransfer from '../form_apiary_site_transfer.vue'
 import NewApply from './proposal_apply_new.vue'
 import Vue from 'vue'
 import {
@@ -147,6 +159,7 @@ export default {
         ProposalDisturbance,
         ProposalApiary,
         NewApply,
+        ApiarySiteTransfer,
     },
     computed: {
         isLoading: function() {

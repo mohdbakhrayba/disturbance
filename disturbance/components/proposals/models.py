@@ -2109,6 +2109,7 @@ class ProposalApiary(models.Model):
     # We don't use GIS field, because these are just fields user input into the <input> field
     latitude = models.DecimalField(max_digits=9, decimal_places=6, null=True, blank=True)
     longitude = models.DecimalField(max_digits=9, decimal_places=6, null=True, blank=True)
+    transferee = models.ForeignKey(EmailUser, blank=True, null=True, related_name='apiary_transferee')
 
     # @property
     # def latitude(self):
