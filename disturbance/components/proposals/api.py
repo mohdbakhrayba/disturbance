@@ -1506,11 +1506,18 @@ class ProposalViewSet(viewsets.ModelViewSet):
         try:
             with transaction.atomic():
                 http_status = status.HTTP_200_OK
-                application_type = ApplicationType.objects.get(id=request.data.get('application'))
+                if request.data.get('application'):
+                    application_type = ApplicationType.objects.get(id=request.data.get('application'))
 
                 # When there is a parameter named 'application_type_str', we may need to update application_type
                 application_type_str = request.data.get('application_type_str', None)
-                if application_type_str == 'temporary_use':
+                #if application_type_str == 'disturbance':
+                #    application_type = ApplicationType.objects.get(name=ApplicationType.DISTURBANCE)
+                #if application_type_str == 'powerline_maintenance':
+                #    application_type = ApplicationType.objects.get(name=ApplicationType.POWERLINE_MAINTENANCE)
+                if application_type_str == 'apiary':
+                    application_type = ApplicationType.objects.get(name=ApplicationType.APIARY)
+                elif application_type_str == 'temporary_use':
                     application_type = ApplicationType.objects.get(name=ApplicationType.TEMPORARY_USE)
                 elif application_type_str == 'site_transfer':
                     application_type = ApplicationType.objects.get(name=ApplicationType.SITE_TRANSFER)
