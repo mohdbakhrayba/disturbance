@@ -228,6 +228,10 @@ export default {
             // Add apiary_sites data if needed
             formData = this.attach_apiary_sites_data(formData)
 
+            console.log('formData: ')
+            console.log(formData)
+            console.log('url: ' + vm.proposal_form_url)
+
             vm.$http.post(vm.proposal_form_url, formData).then(
                 res=>{
                     if (confirmation_required){

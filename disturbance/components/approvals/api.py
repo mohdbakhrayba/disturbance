@@ -42,7 +42,7 @@ from disturbance.components.approvals.serializers import (
     ApprovalWrapperSerializer,
 )
 from disturbance.components.main.decorators import basic_exception_handler
-from disturbance.components.proposals.models import ApiarySite, ApiarySiteApproval, OnSiteInformation
+from disturbance.components.proposals.models import ApiarySite, OnSiteInformation
 from disturbance.components.proposals.serializers_apiary import ApiarySiteSerializer, OnSiteInformationSerializer, \
     ApiarySiteOptimisedSerializer, ProposalApiaryTemporaryUseSerializer, ApiarySiteGeojsonSerializer
 from disturbance.helpers import is_customer, is_internal
@@ -240,9 +240,7 @@ class ApprovalViewSet(viewsets.ModelViewSet):
     def on_site_information(self, request, *args, **kwargs):
         instance = self.get_object()
         on_site_info_qs = OnSiteInformation.objects.filter(
-            apiary_site__in=ApiarySite.objects.filter(
-                apiary_site_approval_set__in=ApiarySiteApproval.objects.filter(approval=instance)
-            ),
+            apiary_site__in=instance.apiary_sites.all(),
             datetime_deleted=None
         )
         serializers = OnSiteInformationSerializer(on_site_info_qs, many=True)
@@ -262,7 +260,7 @@ class ApprovalViewSet(viewsets.ModelViewSet):
         instance = self.get_object()
         optimised = request.query_params.get('optimised', False)
         geojson = request.query_params.get('geojson', False)
-        apiary_site_qs = ApiarySite.objects.filter(apiary_site_approval_set__in=ApiarySiteApproval.objects.filter(approval=instance))
+        apiary_site_qs = instance.apiary_sites.all()
         if optimised:
             # No on-site-information attached
             serializers = ApiarySiteOptimisedSerializer(apiary_site_qs, many=True)

@@ -1,6 +1,5 @@
 <template lang="html">
     <div>
-        <strong>Site Transfer Application</strong>
         <div v-if="is_external" class="col-md-3">
             <div>
                 <h3>Application: {{ proposal.lodgement_number }}</h3>
@@ -10,7 +9,7 @@
         </div>
 
         <div :class="apiary_sections_classname">
-            <FormSection :formCollapse="false" label="Site Locations" Index="site_locations">
+            <!--FormSection :formCollapse="false" label="Site Locations" Index="site_locations">
                 <SiteLocations
                     :proposal="proposal"
                     id="site_locations"
@@ -19,6 +18,63 @@
                     :is_internal="is_internal"
                     @button_text="button_text"
                 />
+            </FormSection-->
+            <FormSection :formCollapse="false" label="Transferee" Index="transferee">
+                <!--span class="row col-sm-12"-->
+                <div class="row col-sm-12">
+                    <div class="form-group">
+                        <!--div class="row form-control">
+                            <label class="inline">Title:</label>
+                        </div-->
+                        <div class="col-sm-8">
+                            <label class="emailLabel">Email:</label>
+                            <input
+                                type="text"
+                                class="form-control"
+                                v-model="transfereeEmail"
+                                :readonly="readonly"
+                            />
+                        </div>
+                        <input type="button" @click="lookupTransferee" value="Find existing licence" class="btn btn-primary">
+                    </div>
+                </div>
+                <!--/span-->
+                <div class="row col-sm-12">
+                    <div class="form-group">
+                        <div v-if="lookupErrorText">
+                            Error: {{lookupErrorText}}
+                        </div>
+                        <div v-else-if="apiaryApprovals">
+                            <div v-for="approval in apiaryApprovals">
+                                <input type="radio" name="approval_choice" :value="approval.id" v-model="selectedLicence"/>
+                                Licence: {{approval.id}}
+                            </div>
+                            <!--ul class="list-unstyled col-sm-12" v-for="approval in apiaryApprovals">
+                                <div class="row">
+                                    <div class="col-sm-12">
+                                        <ul  class="list-inline col-sm-6">
+                                            <li class="list-inline-item">
+                                                <input  
+                                                class="form-check-input" 
+                                                v-model="selectedLicence" 
+                                                ref="licenceSelection" 
+                                                type="radio" 
+                                                :name="approvalid" 
+                                                :id="approvalid"
+                                                :value="approval.id" 
+                                                data-parsley-required 
+                                                :disabled="readonly"/> Licence: {{approval.id}}
+                                            </li>
+                                        </ul>
+                                    </div>
+                                </div>
+                            </ul-->
+                        </div>
+                    </div>
+                </div>
+
+            </FormSection>
+            <FormSection :formCollapse="false" label="Site" Index="site_locations">
             </FormSection>
 
             <FormSection :formCollapse="false" label="Deed Poll" Index="deed_poll">
@@ -70,6 +126,7 @@
     import SiteLocations from '@/components/common/apiary/site_locations.vue'
     import FileField from '@/components/forms/filefield_immediate.vue'
     import FormSection from "@/components/forms/section_toggle.vue"
+    import Vue from 'vue'
     import {
         api_endpoints,
         helpers
@@ -119,7 +176,12 @@
             return{
                 values:null,
                 pBody: 'pBody'+vm._uid,
-                checklist_answers : []
+                checklist_answers : [],
+                transfereeEmail: '',
+                //apiaryApprovals: {},
+                apiaryApprovals: null,
+                lookupErrorText: '',
+                selectedLicence: null,
             }
         },
         components: {
@@ -191,6 +253,26 @@
                  })
              return checklist_answers;
             },
+            lookupTransferee: function() {
+                this.lookupErrorText = '';
+                console.log(this.transfereeEmail);
+                //let url = `/api/proposal_apiary/${this.proposal.proposal_apiary.id}/get_apiary_approvals.json`
+                Vue.http.post(helpers.add_endpoint_json(
+                    api_endpoints.proposal_apiary,this.proposal.proposal_apiary.id+'/get_apiary_approvals'),
+                    //data,{
+                    {'user_email': this.transfereeEmail}).then(res => {
+                        console.log(res.body);
+                        if (res.body && res.body.apiary_approvals) {
+                            this.apiaryApprovals = res.body.apiary_approvals.approvals;
+                        } else {
+                            this.lookupErrorText = res.body;
+                        }
+                },
+                err => {
+                  console.log(err);
+                });
+
+            },
 
         },
         mounted: function() {
@@ -214,6 +296,8 @@
         position: fixed;
         top:56px;
     }
-
+    .emailLabel{
+        text-align: left;
+    }
 </style>
 

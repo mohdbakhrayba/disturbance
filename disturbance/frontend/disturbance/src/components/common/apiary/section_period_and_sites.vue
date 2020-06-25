@@ -25,26 +25,18 @@
             </div>
         </div></div>
 
-        <div class="row col-sm-12">
-            <div class="col-sm-6">
-                <datatable
-                    ref="apiary_sites_table"
-                    id="apiary-sites-table"
-                    :dtOptions="dtOptions"
-                    :dtHeaders="dtHeaders"
-                />
-            </div>
-            <div class="col-sm-6">
-                <ComponentMap />
-            </div>
-        </div>
-
+        <ComponentSiteSelection
+            :apiary_sites="apiary_sites"
+            :is_internal="false"
+            :is_external="true"
+            :key="component_site_selection_key"
+        />
     </div>
 </template>
 
 <script>
-    import datatable from '@vue-utils/datatable.vue'
-    import ComponentMap from '@/components/common/apiary/component_map.vue'
+    import ComponentSiteSelection from '@/components/common/apiary/component_site_selection.vue'
+    import uuid from 'uuid'
 
     export default {
         props:{
@@ -58,9 +50,8 @@
                 type: Object, // Expect moment obj
                 default: null,
             }, 
-            // all the ApiarySite objects under this licence
-            // to be used to create the table
-            apiary_sites_available: {
+            // array of intermediate table, TemporaryUseApiarySite
+            temporary_use_apiary_sites: {
                 type: Array,
                 default: function(){
                     return [];
@@ -94,58 +85,12 @@
         data:function () {
             let vm=this;
             return{
-                dtHeaders: [
-                    'Id',
-                    '',
-                    'Site',
-                    'Action',
-                ],
-                dtOptions: {
-                    serverSide: false,
-                    searchDelay: 1000,
-                    lengthMenu: [ [10, 25, 50, 100, -1], [10, 25, 50, 100, "All"] ],
-                    order: [
-                        [1, 'desc'], [0, 'desc'],
-                    ],
-                    language: {
-                        processing: "<i class='fa fa-4x fa-spinner fa-spin'></i>"
-                    },
-                    responsive: true,
-                    processing: true,
-                    columns: [
-                        {
-                            visible: false,
-                            mRender: function (data, type, full) {
-                                return full.apiary_site.id;
-                            }
-                        },
-                        {
-                            mRender: function (data, type, full) {
-                                if (full.selected){
-                                    return '<input type="checkbox" class="site_checkbox" data-apiary-site-id="' + full.apiary_site.id + '" checked/>'
-                                } else {
-                                    return '<input type="checkbox" class="site_checkbox" data-apiary-site-id="' + full.apiary_site.id + '" />'
-                                }
-                            }
-                        },
-                        {
-                            mRender: function (data, type, full) {
-                                return 'site:' + full.apiary_site.id
-                            }
-                        },
-                        {
-                            mRender: function (data, type, full) {
-                                let ret = '<a><span class="view_on_map" data-apiary-site-id="' + full.apiary_site.id + '"/>View on Map (TODO)</span></a>';
-                                return ret;
-                            }
-                        },
-                    ],
-                },
+                component_site_selection_key: '',
                 period_from: '',
                 period_to: '',
                 period_from_enabled: false,
                 period_to_enabled: false,
-                temporary_use_apiary_sites: [],  // Used to construct the sites table
+                apiary_sites: [],  // Used to construct the sites table
                                                  // Array of TemporaryUseApiarySite objects
             }
         },
@@ -169,93 +114,101 @@
                     this.period_to = null;
                 }
             }
-            if (this.apiary_sites_available.length > 0){
-                this.temporary_use_apiary_sites = this.apiary_sites_available;
+            if (this.temporary_use_apiary_sites.length > 0){
+                for (let i=0; i<this.temporary_use_apiary_sites.length; i++){
+                    let site = this.temporary_use_apiary_sites[i].apiary_site
+
+                    // Add the status of the checkbox for this apiary site if needed
+                    // otherwise the default status is unchecked
+                    site.checked = this.temporary_use_apiary_sites[i].selected
+
+                    this.apiary_sites.push(site)
+                }
             }
             this.period_from_enabled = this.from_date_enabled;
             this.period_to_enabled = this.to_date_enabled;
+            this.component_site_selection_key = uuid()
         },
         components: {
-            datatable,
-            ComponentMap,
+            ComponentSiteSelection,
         },
         computed:{
 
         },
         methods:{
-            viewSiteOnMap: function(e){
-                let apiary_site_id = e.target.getAttribute("data-apiary-site-id");
-                console.log('view site-id: ' + apiary_site_id + ' on the map');
-            },
-            siteCheckboxClicked: function(e){
-                let apiary_site_id = e.target.getAttribute("data-apiary-site-id");
-                this.$emit('site_checkbox_clicked', {
-                    'apiary_site_id': apiary_site_id, 
-                    'checked': e.target.checked
-                }); 
-            },
-            constructApiarySitesTable: function(){
-                // Clear table
-                this.$refs.apiary_sites_table.vmDataTable.clear().draw();
+            //viewSiteOnMap: function(e){
+            //    let apiary_site_id = e.target.getAttribute("data-apiary-site-id");
+            //    console.log('view site-id: ' + apiary_site_id + ' on the map');
+            //},
+            //siteCheckboxClicked: function(e){
+            //    let apiary_site_id = e.target.getAttribute("data-apiary-site-id");
+            //    this.$emit('site_checkbox_clicked', {
+            //        'apiary_site_id': apiary_site_id, 
+            //        'checked': e.target.checked
+            //    }); 
+            //},
+            //constructApiarySitesTable: function(){
+            //    // Clear table
+            //    this.$refs.apiary_sites_table.vmDataTable.clear().draw();
 
-                // Construct table
-                if (this.temporary_use_apiary_sites.length > 0){
-                    for(let i=0; i<this.temporary_use_apiary_sites.length; i++){
-                        this.addApiarySiteToTable(this.temporary_use_apiary_sites[i]);
-                    }
-                }
-            },
-            addApiarySiteToTable: function(temporary_use_apiary_site) {
-                console.log('in addApiarySiteToTable');
-                //apiary_site['_site_used'] = false  // Make the site be temporary usable
-                //apiary_site['_from_and_to_date_set'] = false
+            //    // Construct table
+            //    if (this.apiary_sites.length > 0){
+            //        for(let i=0; i<this.apiary_sites.length; i++){
+            //            this.addApiarySiteToTable(this.apiary_sites[i]);
+            //        }
+            //    }
+            //},
+            //addApiarySiteToTable: function(temporary_use_apiary_site) {
+            //    console.log('in addApiarySiteToTable');
+            //    //apiary_site['_site_used'] = false  // Make the site be temporary usable
+            //    //apiary_site['_from_and_to_date_set'] = false
 
-                if (this.period_from && this.period_to){
-                    // Only when from and to dates are set
-                    //apiary_site['_from_and_to_date_set'] = true
+            //    if (this.period_from && this.period_to){
+            //        // Only when from and to dates are set
+            //        //apiary_site['_from_and_to_date_set'] = true
 
-                //    outer_loop:
-                //    for (let i=0; i<this.existing_temporary_uses.length; i++){
-                //        // Check the usability to each existing temporary_use object
-                //        let temp_use = this.existing_temporary_uses[i];
+            //    //    outer_loop:
+            //    //    for (let i=0; i<this.existing_temporary_uses.length; i++){
+            //    //        // Check the usability to each existing temporary_use object
+            //    //        let temp_use = this.existing_temporary_uses[i];
 
-                //        for (let j=0; j<temp_use.apiary_sites.length; j++){
-                //            let item_in_inter_table = temp_use.apiary_sites[j];
+            //    //        for (let j=0; j<temp_use.apiary_sites.length; j++){
+            //    //            let item_in_inter_table = temp_use.apiary_sites[j];
 
-                //            if (item_in_inter_table.apiary_site.id == apiary_site.id){
-                //                // Check the availability of the site
-                //                let used_from_date = moment(temp_use.from_date, 'YYYY-MM-DD');
-                //                let used_to_date = moment(temp_use.to_date, 'YYYY-MM-DD');
-                //                let period_from = moment(this.period_from, 'DD/MM/YYYY');
-                //                let period_to = moment(this.period_to, 'DD/MM/YYYY');
+            //    //            if (item_in_inter_table.apiary_site.id == apiary_site.id){
+            //    //                // Check the availability of the site
+            //    //                let used_from_date = moment(temp_use.from_date, 'YYYY-MM-DD');
+            //    //                let used_to_date = moment(temp_use.to_date, 'YYYY-MM-DD');
+            //    //                let period_from = moment(this.period_from, 'DD/MM/YYYY');
+            //    //                let period_to = moment(this.period_to, 'DD/MM/YYYY');
 
-                //                console.log('used_from_date');
-                //                console.log(used_from_date);
-                //                console.log('used_to_date');
-                //                console.log(used_to_date);
-                //                console.log('period_from');
-                //                console.log(period_from);
-                //                console.log('period_to');
-                //                console.log(period_to); 
+            //    //                console.log('used_from_date');
+            //    //                console.log(used_from_date);
+            //    //                console.log('used_to_date');
+            //    //                console.log(used_to_date);
+            //    //                console.log('period_from');
+            //    //                console.log(period_from);
+            //    //                console.log('period_to');
+            //    //                console.log(period_to); 
 
-                //                if (period_to < used_from_date || used_to_date < period_from){
-                //                    // Site is not used.  Do nothing
-                //                } else {
-                //                    // This site is temporary used for the period from this.form_date to this.to_date
-                //                    apiary_site['_site_used'] = true
-                //                    break outer_loop;
-                //                }
-                //            }
-                //        }
-                //    }
+            //    //                if (period_to < used_from_date || used_to_date < period_from){
+            //    //                    // Site is not used.  Do nothing
+            //    //                } else {
+            //    //                    // This site is temporary used for the period from this.form_date to this.to_date
+            //    //                    apiary_site['_site_used'] = true
+            //    //                    break outer_loop;
+            //    //                }
+            //    //            }
+            //    //        }
+            //    //    }
 
-                }
+            //    }
 
-                this.$refs.apiary_sites_table.vmDataTable.row.add(temporary_use_apiary_site).draw();
-            },
+            //    this.$refs.apiary_sites_table.vmDataTable.row.add(temporary_use_apiary_site).draw();
+            //},
             addEventListeners: function () {
-                $("#apiary-sites-table").on("click", ".view_on_map", this.viewSiteOnMap);
-                $("#apiary-sites-table").on("click", ".site_checkbox", this.siteCheckboxClicked);
+            //    $("#apiary-sites-table").on("click", ".view_on_map", this.viewSiteOnMap);
+            //    $("#apiary-sites-table").on("click", ".site_checkbox", this.siteCheckboxClicked);
 
                 let vm = this;
                 let el_fr = $(vm.$refs.periodFromDatePicker);
@@ -331,7 +284,6 @@
             let vm = this;
             this.$nextTick(() => {
                 vm.addEventListeners();
-                this.constructApiarySitesTable();
             });
         }
     }

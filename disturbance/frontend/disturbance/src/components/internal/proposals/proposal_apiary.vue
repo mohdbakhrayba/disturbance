@@ -393,7 +393,7 @@
                         <div class="row">
                             <form :action="proposal_form_url" method="post" name="new_proposal" enctype="multipart/form-data">
 
-                                <ProposalApiary 
+                                <ApiaryForm
                                 v-if="proposal" 
                                 :proposal="proposal" 
                                 id="proposalStart" 
@@ -445,7 +445,7 @@
 <script>
 import ProposalDisturbance from '../../form.vue'
 //import ProposalApiary from '../../form_apiary.vue'
-import ProposalApiary from '@/components/form_apiary.vue'
+import ApiaryForm from '@/components/form_apiary.vue'
 import NewApply from '../../external/proposal_apply_new.vue'
 import Vue from 'vue'
 import ProposedDecline from './proposal_proposed_decline.vue'
@@ -536,7 +536,8 @@ export default {
     },
     components: {
         ProposalDisturbance,
-        ProposalApiary,
+        //ProposalApiary,
+        ApiaryForm,
         datatable,
         ProposedDecline,
         AmendmentRequest,
