@@ -2109,7 +2109,10 @@ class ProposalApiary(models.Model):
     # We don't use GIS field, because these are just fields user input into the <input> field
     latitude = models.DecimalField(max_digits=9, decimal_places=6, null=True, blank=True)
     longitude = models.DecimalField(max_digits=9, decimal_places=6, null=True, blank=True)
+    # required for Site Transfer applications
     transferee = models.ForeignKey(EmailUser, blank=True, null=True, related_name='apiary_transferee')
+    loaning_approval = models.ForeignKey('disturbance.Approval', blank=True, null=True)
+    ###
 
     # @property
     # def latitude(self):
@@ -2619,6 +2622,7 @@ class ApiarySiteApproval(models.Model):
         app_label = 'disturbance'
 
 
+# TODO: remove if no longer required
 class ProposalApiarySiteTransfer(models.Model):
     email = models.EmailField('Email of Transferee', max_length=254, blank=True, null=True)
     proposal = models.OneToOneField(Proposal, related_name='apiary_site_transfer', null=True)

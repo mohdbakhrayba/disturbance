@@ -121,7 +121,7 @@ from disturbance.components.main.process_document import (
         process_generic_document, 
         #save_comms_log_document_obj
         )
-
+from copy import deepcopy
 import logging
 logger = logging.getLogger(__name__)
 
@@ -813,7 +813,7 @@ class ProposalViewSet(viewsets.ModelViewSet):
     def get_serializer_class(self):
         try:
             application_type = self.get_object().application_type.name
-            if application_type == ApplicationType.APIARY:
+            if application_type in (ApplicationType.APIARY, ApplicationType.SITE_TRANSFER):
                 return ProposalApiaryTypeSerializer
             else:
                 return ProposalSerializer
@@ -1599,14 +1599,31 @@ class ProposalViewSet(viewsets.ModelViewSet):
                 details_data = {
                     'proposal_id': proposal_obj.id
                 }
-                #if application_type.name == ApplicationType.APIARY:
-                if application_type.name in (ApplicationType.APIARY, ApplicationType.SITE_TRANSFER):
+                if application_type.name == ApplicationType.APIARY:
                     serializer = SaveProposalApiarySerializer(data=details_data)
                     serializer.is_valid(raise_exception=True)
                     proposal_apiary = serializer.save()
                     for question in ApiaryApplicantChecklistQuestion.objects.all():
                         new_answer = ApiaryApplicantChecklistAnswer.objects.create(proposal = proposal_apiary,
                                                                                    question = question)
+                elif application_type.name == ApplicationType.SITE_TRANSFER:
+                    #import ipdb;ipdb.set_trace()
+                    approval_id = request.data.get('loaning_approval_id')
+                    approval = Approval.objects.get(id=approval_id)
+                    #details_data['loaning_approval_id'] = approval_id
+                    serializer = SaveProposalApiarySerializer(data=details_data)
+                    serializer.is_valid(raise_exception=True)
+                    proposal_apiary = serializer.save()
+                    for question in ApiaryApplicantChecklistQuestion.objects.all():
+                        new_answer = ApiaryApplicantChecklistAnswer.objects.create(proposal = proposal_apiary,
+                                                                                   question = question)
+                    # Save ApiarySites
+                    for apiary_site in approval.apiary_sites.all():
+                        new_apiary_site = deepcopy(apiary_site)
+                        new_apiary_site.id = None
+                        new_apiary_site.approval = None
+                        new_apiary_site.proposal_apiary = proposal_apiary
+                        new_apiary_site.save()
 
                 elif application_type.name == ApplicationType.TEMPORARY_USE:
                     approval_id = request.data.get('approval_id')

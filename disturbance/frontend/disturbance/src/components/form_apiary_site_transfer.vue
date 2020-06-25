@@ -75,6 +75,12 @@
 
             </FormSection>
             <FormSection :formCollapse="false" label="Site" Index="site_locations">
+                <ComponentSiteSelection
+                    :apiary_sites="apiary_sites"
+                    :is_internal="is_internal"
+                    :is_external="is_external"
+                    :key="component_site_selection_key"
+                  />
             </FormSection>
 
             <FormSection :formCollapse="false" label="Deed Poll" Index="deed_poll">
@@ -123,10 +129,12 @@
 
 <script>
 
-    import SiteLocations from '@/components/common/apiary/site_locations.vue'
+    //import SiteLocations from '@/components/common/apiary/site_locations.vue'
     import FileField from '@/components/forms/filefield_immediate.vue'
     import FormSection from "@/components/forms/section_toggle.vue"
     import Vue from 'vue'
+    import ComponentSiteSelection from '@/components/common/apiary/component_site_selection.vue'
+    import uuid from 'uuid'
     import {
         api_endpoints,
         helpers
@@ -182,10 +190,12 @@
                 apiaryApprovals: null,
                 lookupErrorText: '',
                 selectedLicence: null,
+                component_site_selection_key: '',
             }
         },
         components: {
-            SiteLocations,
+            //SiteLocations,
+            ComponentSiteSelection,
             FileField,
             FormSection,
         },
@@ -236,7 +246,12 @@
 
                 return UnansweredChecklistQuestions;
 
-            }
+            },
+            apiary_sites: function() {
+                if (this.proposal && this.proposal.proposal_apiary) {
+                    return this.proposal.proposal_apiary.apiary_sites;
+                }
+            },
           //applicantType: function(){
           //  return this.proposal.applicant_type;
           //},
@@ -276,7 +291,8 @@
 
         },
         mounted: function() {
-            let vm = this;
+            //let vm = this;
+            this.component_site_selection_key = uuid()
             //vm.form = document.forms.new_proposal;
             //window.addEventListener('beforeunload', vm.leaving);
             //window.addEventListener('onblur', vm.leaving);

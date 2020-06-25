@@ -11,21 +11,24 @@
 
         <div :class="apiary_sections_classname">
             <FormSection :formCollapse="false" label="Site Locations" Index="site_locations">
-                <ComponentSiteSelection
-                    :apiary_sites="apiary_sites"
-                    :is_internal="is_internal"
-                    :is_external="is_external"
-                    :key="component_site_selection_key"
-                  />
-
-                <!--SiteLocations
-                    :proposal="proposal"
-                    id="site_locations"
-                    ref="apiary_site_locations"
-                    :is_external="is_external"
-                    :is_internal="is_internal"
-                    @button_text="button_text"
-                /-->
+                <div v-if="draftApiaryApplication">
+                    <SiteLocations
+                        :proposal="proposal"
+                        id="site_locations"
+                        ref="apiary_site_locations"
+                        :is_external="is_external"
+                        :is_internal="is_internal"
+                        @button_text="button_text"
+                    />
+                </div>
+                <div v-else>
+                    <ComponentSiteSelection
+                        :apiary_sites="apiary_sites"
+                        :is_internal="is_internal"
+                        :is_external="is_external"
+                        :key="component_site_selection_key"
+                      />
+                </div>
             </FormSection>
 
             <FormSection :formCollapse="false" label="Deed Poll" Index="deed_poll">
@@ -74,7 +77,7 @@
 
 <script>
 
-    //import SiteLocations from '@/components/common/apiary/site_locations.vue'
+    import SiteLocations from '@/components/common/apiary/site_locations.vue'
     import ComponentSiteSelection from '@/components/common/apiary/component_site_selection.vue'
     import FileField from '@/components/forms/filefield_immediate.vue'
     import FormSection from "@/components/forms/section_toggle.vue"
@@ -133,7 +136,7 @@
             }
         },
         components: {
-            //SiteLocations,
+            SiteLocations,
             ComponentSiteSelection,
             FileField,
             FormSection,
@@ -191,6 +194,13 @@
                     return this.proposal.proposal_apiary.apiary_sites;
                 }
             },
+            draftApiaryApplication: function() {
+                let draftStatus = false;
+                if (this.is_external && this.proposal && this.proposal.application_type === 'Apiary' && this.proposal.customer_status === 'Draft') {
+                    draftStatus = true;
+                }
+                return draftStatus;
+            },
 
           //applicantType: function(){
           //  return this.proposal.applicant_type;
@@ -211,7 +221,7 @@
 
         },
         mounted: function() {
-            let vm = this;
+            //let vm = this;
             this.component_site_selection_key = uuid()
             //vm.form = document.forms.new_proposal;
             //window.addEventListener('beforeunload', vm.leaving);

@@ -84,6 +84,7 @@
                     'activity': '',
                     'sub_activity1': '',
                     'application_type_str': 'site_transfer',
+                    'loaning_approval_id': this.approval_id,
                     //'approval_id': this.approval_id,
                 }
                 return data
