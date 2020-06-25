@@ -11,14 +11,21 @@
 
         <div :class="apiary_sections_classname">
             <FormSection :formCollapse="false" label="Site Locations" Index="site_locations">
-                <SiteLocations
+                <ComponentSiteSelection
+                    :apiary_sites="apiary_sites"
+                    :is_internal="is_internal"
+                    :is_external="is_external"
+                    :key="component_site_selection_key"
+                  />
+
+                <!--SiteLocations
                     :proposal="proposal"
                     id="site_locations"
                     ref="apiary_site_locations"
                     :is_external="is_external"
                     :is_internal="is_internal"
                     @button_text="button_text"
-                />
+                /-->
             </FormSection>
 
             <FormSection :formCollapse="false" label="Deed Poll" Index="deed_poll">
@@ -67,9 +74,11 @@
 
 <script>
 
-    import SiteLocations from '@/components/common/apiary/site_locations.vue'
+    //import SiteLocations from '@/components/common/apiary/site_locations.vue'
+    import ComponentSiteSelection from '@/components/common/apiary/component_site_selection.vue'
     import FileField from '@/components/forms/filefield_immediate.vue'
     import FormSection from "@/components/forms/section_toggle.vue"
+    import uuid from 'uuid'
     import {
         api_endpoints,
         helpers
@@ -119,11 +128,13 @@
             return{
                 values:null,
                 pBody: 'pBody'+vm._uid,
-                checklist_answers : []
+                checklist_answers : [],
+                component_site_selection_key: '',
             }
         },
         components: {
-            SiteLocations,
+            //SiteLocations,
+            ComponentSiteSelection,
             FileField,
             FormSection,
         },
@@ -174,7 +185,13 @@
 
                 return UnansweredChecklistQuestions;
 
-            }
+            },
+            apiary_sites: function() {
+                if (this.proposal && this.proposal.proposal_apiary) {
+                    return this.proposal.proposal_apiary.apiary_sites;
+                }
+            },
+
           //applicantType: function(){
           //  return this.proposal.applicant_type;
           //},
@@ -195,6 +212,7 @@
         },
         mounted: function() {
             let vm = this;
+            this.component_site_selection_key = uuid()
             //vm.form = document.forms.new_proposal;
             //window.addEventListener('beforeunload', vm.leaving);
             //window.addEventListener('onblur', vm.leaving);

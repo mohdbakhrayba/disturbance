@@ -42,7 +42,9 @@
                         v-model.number="proposal.proposal_apiary.longitude"
                         :readonly="readonly"
                     />
-                    <input type="button" @click="tryCreateNewSiteFromForm" value="Add proposed site" class="btn btn-primary">
+                    <template v-if="!readonly">
+                        <input type="button" @click="tryCreateNewSiteFromForm" value="Add proposed site" class="btn btn-primary">
+                    </template>
                 </div>
             </div>
 
@@ -234,8 +236,11 @@
                         },
                         {
                             mRender: function (data, type, full) {
-                                let ret_str = '<span class="delete_button" style="color:#347ab7; cursor: pointer;" data-site-location-guid="' + full.getId() + '">Delete</span>';
-                                return ret_str;
+                                let ret_str = ''
+                                if (!vm.readonly){
+                                    ret_str = '<span class="delete_button" style="color:#347ab7; cursor: pointer;" data-site-location-guid="' + full.getId() + '">Delete</span>'
+                                }
+                                return ret_str
                             }
                         },
                     ],
@@ -259,7 +264,6 @@
         watch:{
         },
         methods:{
-            
             uuidv4: function () {
                 return ([1e7]+-1e3+-4e3+-8e3+-1e11).replace(/[018]/g, 
                     function(c) {
@@ -518,58 +522,62 @@
                 }));
 
                 // Draw and modify tools
-                let modifyInProgressList = [];
-                let drawTool = new Draw({
-                    source: vm.drawingLayerSource,
-                    type: "Point"
-                });
-                drawTool.on("drawstart", function(attributes){
-                    console.log('drawstart')
+                if (!vm.readonly){
+                    let modifyInProgressList = [];
+                    let drawTool = new Draw({
+                        source: vm.drawingLayerSource,
+                        type: "Point"
+                    });
+                    drawTool.on("drawstart", function(attributes){
+                        console.log('drawstart')
 
-                    if (!vm.isNewPositionValid(attributes.feature.getGeometry().getCoordinates())) {
-                        drawTool.abortDrawing();
-                    }
-                });
-                drawTool.on('drawend', function(attributes){
-                    console.log('drawend')
-
-                    let feature = attributes.feature;
-                    feature.setId(vm.uuidv4());
-                    feature.set("source", "draw");
-                    feature.set('site_category', vm.current_category) // For now, we add category, either south_west/remote to the feature according to the selection of the UI
-                    feature.getGeometry().on("change", function() {
-                        console.log("Start Modify feature: " + feature.getId());
-
-                        if (modifyInProgressList.indexOf(feature) < 0) {
-                            modifyInProgressList.push(feature);
+                        if (!vm.isNewPositionValid(attributes.feature.getGeometry().getCoordinates())) {
+                            drawTool.abortDrawing();
                         }
                     });
-                    console.log("New Feature: " + feature.getId());
-                    vm.createBufferForSite(feature);
-                    // Vue table is updated by the event 'addfeature' issued from the Source
-                });
-                vm.map.addInteraction(drawTool);
+                    drawTool.on('drawend', function(attributes){
+                        console.log('drawend')
 
-                let modifyTool = new Modify({
-                    source: vm.drawingLayerSource,
-                });
-                modifyTool.on("modifyend", function(attributes){
-                    console.log('modifyend')
-                    // this will list all features in layer, not so useful without cross referencing
-                    attributes.features.forEach(function(feature){
-                        let index = modifyInProgressList.indexOf(feature);
-                        if (index > -1) {
-                            console.log("End Modify Feature: " + index + "/" + modifyInProgressList.length + " " + feature.getId());
-                            modifyInProgressList.splice(index, 1);
-                            //vm.updateVueFeature(feature);
-                            vm.removeBufferForSite(feature);
+                        if (!this.readoly){
+                            let feature = attributes.feature;
+                            feature.setId(vm.uuidv4());
+                            feature.set("source", "draw");
+                            feature.set('site_category', vm.current_category) // For now, we add category, either south_west/remote to the feature according to the selection of the UI
+                            feature.getGeometry().on("change", function() {
+                                console.log("Start Modify feature: " + feature.getId());
+
+                                if (modifyInProgressList.indexOf(feature) < 0) {
+                                    modifyInProgressList.push(feature);
+                                }
+                            });
+                            console.log("New Feature: " + feature.getId());
                             vm.createBufferForSite(feature);
-
-                            vm.constructSiteLocationsTable()
+                            // Vue table is updated by the event 'addfeature' issued from the Source
                         }
                     });
-                });
-                vm.map.addInteraction(modifyTool);
+                    vm.map.addInteraction(drawTool);
+
+                    let modifyTool = new Modify({
+                        source: vm.drawingLayerSource,
+                    });
+                    modifyTool.on("modifyend", function(attributes){
+                        console.log('modifyend')
+                        // this will list all features in layer, not so useful without cross referencing
+                        attributes.features.forEach(function(feature){
+                            let index = modifyInProgressList.indexOf(feature);
+                            if (index > -1) {
+                                console.log("End Modify Feature: " + index + "/" + modifyInProgressList.length + " " + feature.getId());
+                                modifyInProgressList.splice(index, 1);
+                                //vm.updateVueFeature(feature);
+                                vm.removeBufferForSite(feature);
+                                vm.createBufferForSite(feature);
+
+                                vm.constructSiteLocationsTable()
+                            }
+                        });
+                    });
+                    vm.map.addInteraction(modifyTool);
+                }
             },  // End: initMap()
             tryCreateNewSiteFromForm: function()
             {

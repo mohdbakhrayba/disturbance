@@ -3,7 +3,6 @@
         <modal transition="modal fade" @ok="ok()" @cancel="cancel()" :title="title" large>
             <div class="container-fluid">
                 <div class="row">
-            <strong>Put Map on this modal</strong>
                     <form class="form-horizontal" name="approvalForm">
                         <!-- <alert v-if="isApprovalLevelDocument" type="warning"><strong>{{warningString}}</strong></alert> -->
                         <alert :show.sync="showError" type="danger"><strong>{{errorString}}</strong></alert>
@@ -83,6 +82,13 @@
                         </div>
                     </form>
                 </div>
+
+                <template v-if="approval && approval.apiary_sites">
+                    <ComponentSiteSelection
+                        :apiary_sites="approval.apiary_sites"
+                    />
+                </template>
+
             </div>
             <p v-if="can_preview">Click <a href="#" @click.prevent="preview">here</a> to preview the approval letter.</p>
             <div slot="footer">
@@ -99,11 +105,13 @@
 import modal from '@vue-utils/bootstrap-modal.vue'
 import alert from '@vue-utils/alert.vue'
 import {helpers,api_endpoints} from "@/utils/hooks.js"
+import ComponentSiteSelection from '@/components/common/apiary/component_site_selection.vue'
 export default {
     name:'Proposed-Approval',
     components:{
         modal,
-        alert
+        alert,
+        ComponentSiteSelection,
     },
     props:{
         proposal_apiary_id: {
