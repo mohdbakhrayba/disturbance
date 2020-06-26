@@ -320,6 +320,7 @@ class InternalProposalSerializer(BaseProposalSerializer):
     #region = serializers.CharField(source='region.name', read_only=True)
     #district = serializers.CharField(source='district.name', read_only=True)
     #tenure = serializers.CharField(source='tenure.name', read_only=True)
+    apiary_temporary_use = ProposalApiaryTemporaryUseSerializer(many=False, read_only=True)
 
     class Meta:
         model = Proposal
@@ -378,6 +379,7 @@ class InternalProposalSerializer(BaseProposalSerializer):
                 'management_area',
                 'fee_invoice_reference',
                 'fee_paid',
+                'apiary_temporary_use',
                 )
         read_only_fields=('documents','requirements')
 

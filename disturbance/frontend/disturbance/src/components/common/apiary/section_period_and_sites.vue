@@ -5,7 +5,7 @@
             <label class="col-sm-2">Period From</label>
             <div class="col-sm-4">
                 <div class="input-group date" ref="periodFromDatePicker">
-                    <input type="text" class="form-control" placeholder="DD/MM/YYYY" id="period_from_input_element" :disabled="!period_from_enabled" />
+                    <input type="text" class="form-control" placeholder="DD/MM/YYYY" id="period_from_input_element" :readonly="is_readonly"/>
                     <span class="input-group-addon">
                         <span class="glyphicon glyphicon-calendar"></span>
                     </span>
@@ -17,7 +17,7 @@
             <label class="col-sm-2">Period To</label>
             <div class="col-sm-4">
                 <div class="input-group date" ref="periodToDatePicker">
-                    <input type="text" class="form-control" placeholder="DD/MM/YYYY" id="period_to_input_element" :disabled="!period_to_enabled" />
+                    <input type="text" class="form-control" placeholder="DD/MM/YYYY" id="period_to_input_element" :readonly="is_readonly"/>
                     <span class="input-group-addon">
                         <span class="glyphicon glyphicon-calendar"></span>
                     </span>
@@ -31,6 +31,7 @@
             :is_external="true"
             :key="component_site_selection_key"
         />
+
     </div>
 </template>
 
@@ -39,6 +40,7 @@
     import uuid from 'uuid'
 
     export default {
+        name: 'SectionPeriodAndSites',
         props:{
             // If editing an existing proposal apiary temporary use, data is passed from the parent component
             from_date: {
@@ -65,14 +67,14 @@
                     return [];
                 }
             },
-            from_date_enabled: {
-                type: Boolean,
-                default: false,
-            },
-            to_date_enabled: {
-                type: Boolean,
-                default: false,
-            },
+            //from_date_enabled: {
+            //    type: Boolean,
+            //    default: false,
+            //},
+            //to_date_enabled: {
+            //    type: Boolean,
+            //    default: false,
+            //},
             is_external:{
               type: Boolean,
               default: false
@@ -81,6 +83,10 @@
               type: Boolean,
               default: false
             },
+            is_readonly: {
+              type: Boolean,
+              default: true
+            }
         },
         data:function () {
             let vm=this;
@@ -88,8 +94,8 @@
                 component_site_selection_key: '',
                 period_from: '',
                 period_to: '',
-                period_from_enabled: false,
-                period_to_enabled: false,
+                //period_from_enabled: false,
+                //period_to_enabled: false,
                 apiary_sites: [],  // Used to construct the sites table
                                                  // Array of TemporaryUseApiarySite objects
             }
@@ -125,8 +131,8 @@
                     this.apiary_sites.push(site)
                 }
             }
-            this.period_from_enabled = this.from_date_enabled;
-            this.period_to_enabled = this.to_date_enabled;
+            //this.period_from_enabled = this.from_date_enabled;
+            //this.period_to_enabled = this.to_date_enabled;
             this.component_site_selection_key = uuid()
         },
         components: {
@@ -235,7 +241,7 @@
                         el_to.data('DateTimePicker').minDate(false);
                     }
                     vm.$emit('from_date_changed', vm.period_from)
-                    vm.constructApiarySitesTable();
+                    //vm.constructApiarySitesTable();
                 });
 
                 el_to.on("dp.change", function(e) {
@@ -249,7 +255,7 @@
                         el_fr.data('DateTimePicker').maxDate(false);
                     }
                     vm.$emit('to_date_changed', vm.period_to)
-                    vm.constructApiarySitesTable();
+                    //vm.constructApiarySitesTable();
                 });
 
                 //***

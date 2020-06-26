@@ -4,25 +4,25 @@
         <div class="form-group"><div class="row">
             <label class="col-sm-2">Name</label>
             <div class="col-sm-4">
-                <input type="text" class="form-control" v-model="occupier_name"/>
+                <input type="text" class="form-control" v-model="occupier_name" :disabled="is_readonly"/>
             </div>
         </div></div>
         <div class="form-group"><div class="row">
             <label class="col-sm-2">Phone</label>
             <div class="col-sm-4">
-                <input type="text" class="form-control" v-model="occupier_phone"/>
+                <input type="text" class="form-control" v-model="occupier_phone" :disabled="is_readonly"/>
             </div>
         </div></div>
         <div class="form-group"><div class="row">
             <label class="col-sm-2">Mobile</label>
             <div class="col-sm-4">
-                <input type="text" class="form-control" v-model="occupier_mobile"/>
+                <input type="text" class="form-control" v-model="occupier_mobile" :disabled="is_readonly"/>
             </div>
         </div></div>
         <div class="form-group"><div class="row">
             <label class="col-sm-2">Email</label>
             <div class="col-sm-4">
-                <input type="text" class="form-control" v-model="occupier_email"/>
+                <input type="text" class="form-control" v-model="occupier_email" :disabled="is_readonly"/>
             </div>
         </div></div>
 
@@ -31,6 +31,7 @@
 
 <script>
     export default {
+        name: 'SectionTemporaryOccupier',
         props:{
             name: {
                 type: String,
@@ -47,6 +48,10 @@
             email: {
                 type: String,
                 default: '',
+            },
+            is_readonly: {
+                type: Boolean,
+                default: true,
             },
         },
         watch: {

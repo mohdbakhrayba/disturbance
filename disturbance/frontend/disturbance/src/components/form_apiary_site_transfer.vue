@@ -46,7 +46,7 @@
                         </div>
                         <div v-else-if="apiaryApprovals">
                             <div v-for="approval in apiaryApprovals">
-                                <input type="radio" name="approval_choice" :value="approval.id" v-model="selectedLicence"/>
+                                <input type="radio" name="approval_choice" :value="approval.id" v-model="proposal.proposal_apiary.selected_licence"/>
                                 Licence: {{approval.id}}
                             </div>
                             <!--ul class="list-unstyled col-sm-12" v-for="approval in apiaryApprovals">
@@ -75,6 +75,12 @@
 
             </FormSection>
             <FormSection :formCollapse="false" label="Site" Index="site_locations">
+                <ComponentSiteSelection
+                    :apiary_sites="apiary_sites"
+                    :is_internal="is_internal"
+                    :is_external="is_external"
+                    :key="component_site_selection_key"
+                  />
             </FormSection>
 
             <FormSection :formCollapse="false" label="Deed Poll" Index="deed_poll">
@@ -123,16 +129,19 @@
 
 <script>
 
-    import SiteLocations from '@/components/common/apiary/site_locations.vue'
+    //import SiteLocations from '@/components/common/apiary/site_locations.vue'
     import FileField from '@/components/forms/filefield_immediate.vue'
     import FormSection from "@/components/forms/section_toggle.vue"
     import Vue from 'vue'
+    import ComponentSiteSelection from '@/components/common/apiary/component_site_selection.vue'
+    import uuid from 'uuid'
     import {
         api_endpoints,
         helpers
     }from '@/utils/hooks'
 
     export default {
+        name: 'ApiarySiteTransferForm',
         props:{
             proposal:{
                 type: Object,
@@ -181,11 +190,13 @@
                 //apiaryApprovals: {},
                 apiaryApprovals: null,
                 lookupErrorText: '',
-                selectedLicence: null,
+                //selectedLicence: null,
+                component_site_selection_key: '',
             }
         },
         components: {
-            SiteLocations,
+            //SiteLocations,
+            ComponentSiteSelection,
             FileField,
             FormSection,
         },
@@ -236,7 +247,34 @@
 
                 return UnansweredChecklistQuestions;
 
-            }
+            },
+            apiary_sites: function() {
+                let sites = []
+                if (this.proposal && this.proposal.proposal_apiary) {
+                    for (let site of this.proposal.proposal_apiary.site_transfer_apiary_sites) {
+                        sites.push(site.apiary_site)
+                    }
+                }
+                return sites;
+            },
+
+            /*
+            apiary_sites: function() {
+                if (this.proposal && this.proposal.proposal_apiary) {
+                    return this.proposal.proposal_apiary.apiary_sites;
+                }
+            },
+            apiary_sites_minimal: function() {
+                let apiary_sites = [];
+                for (let site of this.apiary_sites) {
+                    apiary_sites.push({
+                        'id': site.id,
+                        'checked': site.checked,
+                    })
+                }
+                return apiary_sites;
+            },
+            */
           //applicantType: function(){
           //  return this.proposal.applicant_type;
           //},
@@ -264,6 +302,9 @@
                         console.log(res.body);
                         if (res.body && res.body.apiary_approvals) {
                             this.apiaryApprovals = res.body.apiary_approvals.approvals;
+                            if (this.apiaryApprovals.length < 1) {
+                                this.lookupErrorText = 'No current licence for the transferee';
+                            }
                         } else {
                             this.lookupErrorText = res.body;
                         }
@@ -276,7 +317,8 @@
 
         },
         mounted: function() {
-            let vm = this;
+            //let vm = this;
+            this.component_site_selection_key = uuid()
             //vm.form = document.forms.new_proposal;
             //window.addEventListener('beforeunload', vm.leaving);
             //window.addEventListener('onblur', vm.leaving);

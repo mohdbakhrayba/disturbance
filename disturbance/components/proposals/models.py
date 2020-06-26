@@ -1185,6 +1185,63 @@ class Proposal(RevisionedMixin):
             except:
                 raise
 
+    def final_approval_temp_use(self, request):
+        with transaction.atomic():
+            try:
+                if not self.can_assess(request.user):
+                    raise exceptions.ProposalNotAuthorized()
+                if self.processing_status != 'with_assessor':
+                    # For temporary Use Application, assessor approves it
+                    raise ValidationError('You cannot approve the proposal if it is not with an assessor')
+
+                self.proposed_decline_status = False
+                self.processing_status = 'approved'
+                self.customer_status = 'approved'
+
+                # Log proposal action
+                self.log_user_action(ProposalUserAction.ACTION_ISSUE_APPROVAL_.format(self.id),request)
+                # Log entry for organisation
+                if self.applicant:
+                    self.applicant.log_user_action(ProposalUserAction.ACTION_ISSUE_APPROVAL_.format(self.id),request)
+
+                # TODO: Email?
+
+                self.save()
+
+            except:
+                raise
+
+    def final_decline_temp_use(self, request):
+        with transaction.atomic():
+            try:
+                if not self.can_assess(request.user):
+                    raise exceptions.ProposalNotAuthorized()
+                if self.processing_status != 'with_assessor':
+                    # For temporary Use Application, assessor approves it
+                    raise ValidationError('You cannot approve the proposal if it is not with an assessor')
+
+                # TODO: Is it required to show a modal and get the reason of the delinature or so?  If so, we need following 4 lines
+                # proposal_decline, success = ProposalDeclinedDetails.objects.update_or_create(
+                #     proposal = self,
+                #     defaults={'officer':request.user,'reason':details.get('reason'),'cc_email':details.get('cc_email',None)}
+                # )
+                self.proposed_decline_status = True
+                self.processing_status = 'declined'
+                self.customer_status = 'declined'
+                self.save()
+                # Log proposal action
+                self.log_user_action(ProposalUserAction.ACTION_DECLINE.format(self.id), request)
+                # Log entry for organisation
+                if self.applicant:
+                    self.applicant.log_user_action(ProposalUserAction.ACTION_DECLINE.format(self.id), request)
+
+                # TODO: Email?
+                # send_proposal_decline_email_notification(self,request, proposal_decline)
+
+            except:
+                raise
+
+
     def final_approval(self,request,details):
         from disturbance.components.approvals.models import Approval
         with transaction.atomic():
@@ -2109,7 +2166,10 @@ class ProposalApiary(models.Model):
     # We don't use GIS field, because these are just fields user input into the <input> field
     latitude = models.DecimalField(max_digits=9, decimal_places=6, null=True, blank=True)
     longitude = models.DecimalField(max_digits=9, decimal_places=6, null=True, blank=True)
+    # required for Site Transfer applications
     transferee = models.ForeignKey(EmailUser, blank=True, null=True, related_name='apiary_transferee')
+    sending_approval = models.ForeignKey('disturbance.Approval', blank=True, null=True)
+    ###
 
     # @property
     # def latitude(self):
@@ -2213,7 +2273,12 @@ class ProposalApiary(models.Model):
         from disturbance.components.approvals.models import Approval
         with transaction.atomic():
             try:
-                approval = self.retrieve_approval if self.retrieve_approval else None
+                approval = None
+                if self.proposal.application_type == 'Apiary':
+                    approval = self.retrieve_approval
+                elif self.proposal.application_type == 'Site Transfer':
+                    approval = self.proposal.approval
+
                 #approval = None
                 #approval = self.retrieve_approval()
                 created = None
@@ -2512,6 +2577,7 @@ class ApiarySite(models.Model):
         (STATUS_DENIED, 'denied'),
         (STATUS_VACANT, 'vacant'),
     )
+    NON_RESTRICTIVE_STATUSES = (STATUS_DRAFT, STATUS_VACANT,)
 
     #TODO - this should link to Proposal, not ProposalApiary
     #proposal = models.ForeignKey(Proposal, null=True, blank=True, related_name='apiary_sites')
@@ -2607,6 +2673,16 @@ class TemporaryUseApiarySite(models.Model):
         app_label = 'disturbance'
 
 
+class SiteTransferApiarySite(models.Model):
+    proposal_apiary = models.ForeignKey(ProposalApiary, blank=True, null=True, related_name='site_transfer_apiary_sites')
+    apiary_site = models.ForeignKey(ApiarySite, blank=True, null=True)
+    selected = models.BooleanField(default=False)
+
+    class Meta:
+        app_label = 'disturbance'
+
+
+
 # TODO: remove if no longer required
 class ApiarySiteApproval(models.Model):
     """
@@ -2619,6 +2695,7 @@ class ApiarySiteApproval(models.Model):
         app_label = 'disturbance'
 
 
+# TODO: remove if no longer required
 class ProposalApiarySiteTransfer(models.Model):
     email = models.EmailField('Email of Transferee', max_length=254, blank=True, null=True)
     proposal = models.OneToOneField(Proposal, related_name='apiary_site_transfer', null=True)
@@ -2676,11 +2753,20 @@ class ApiaryApplicantChecklistQuestion(models.Model):
     ANSWER_TYPE_CHOICES = (
         ('yes_no', 'Yes/No type'),
     )
+    CHECKLIST_TYPE_CHOICES = (
+        ('apiary', 'Apiary'),
+        ('site_transfer', 'Site Transfer'),
+    )
     text = models.TextField()
     answer_type = models.CharField('Answer Type',
                                    max_length=30,
                                    choices=ANSWER_TYPE_CHOICES,
                                    default=ANSWER_TYPE_CHOICES[0][0])
+    checklist_type = models.CharField('Checklist Type',
+                                   max_length=30,
+                                   choices=CHECKLIST_TYPE_CHOICES,
+                                   #default=ANSWER_TYPE_CHOICES[0][0]
+                                   )
     order = models.PositiveIntegerField(default=1)
 
     def __str__(self):

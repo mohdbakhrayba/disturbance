@@ -22,7 +22,7 @@ import ProposalTemporaryUse from '@/components/external/proposal_temporary_use.v
 import Proposal from '@/components/external/proposal_external.vue'
 
 export default {
-    name: 'ProposalWrapper',
+    name: 'ExternalProposalWrapper',
     data() {
         let vm = this;
         return {

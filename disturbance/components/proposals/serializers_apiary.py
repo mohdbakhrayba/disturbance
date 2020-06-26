@@ -19,18 +19,19 @@ from disturbance.components.proposals.models import (
     ProposalApiary,
     ProposalApiaryTemporaryUse,
     ProposalApiarySiteTransfer,
-
     ApiaryApplicantChecklistQuestion,
     ApiaryApplicantChecklistAnswer,
-
     ProposalApiaryDocument,
     ApiarySite,
-
     OnSiteInformation,
     ApiaryReferralGroup,
     TemporaryUseApiarySite,
+    SiteTransferApiarySite,
     ApiaryReferral,
-    Referral, ApiarySiteFeeType, ApiarySiteFeeRemainder, SiteCategory,
+    Referral, 
+    ApiarySiteFeeType, 
+    ApiarySiteFeeRemainder, 
+    SiteCategory,
 )
 
 from rest_framework import serializers
@@ -105,6 +106,7 @@ class ApiaryApplicantChecklistQuestionSerializer(serializers.ModelSerializer):
         fields=('id',
                 'text',
                 'answer_type',
+                'checklist_type',
                 'order'
                 )
 
@@ -258,8 +260,35 @@ class ApiarySiteGeojsonSerializer(GeoFeatureModelSerializer):
         )
 
 
+class SiteTransferApiarySiteSerializer(serializers.ModelSerializer):
+    proposal_apiary_id = serializers.IntegerField(write_only=True, required=False)
+    apiary_site_id = serializers.IntegerField(write_only=True, required=False)
+    apiary_site = ApiarySiteSerializer(read_only=True)
+    # apiary_site_approval = ApiarySiteApprovalSerializer(read_only=True)
+    # apiary_site_approval_id = serializers.IntegerField(write_only=True, required=False)
+    # apiary_site = serializers.SerializerMethodField()
+
+    def validate(self, attrs):
+        # TODO: check if the site is not temporary used to another person for the period
+        # TODO: check if the licence is valid, etc
+        return attrs
+
+    class Meta:
+        model = SiteTransferApiarySite
+        fields = (
+            'id',
+            'proposal_apiary_id',
+            # 'apiary_site_approval',
+            # 'apiary_site_approval_id',
+            'apiary_site_id',
+            'apiary_site',
+            'selected',
+        )
+
+
 class ProposalApiarySerializer(serializers.ModelSerializer):
     apiary_sites = ApiarySiteSerializer(read_only=True, many=True)
+    site_transfer_apiary_sites = SiteTransferApiarySiteSerializer(read_only=True, many=True)
     on_site_information_list = serializers.SerializerMethodField()  # This is used for displaying OnSite table at the frontend
 
     #checklist_questions = serializers.SerializerMethodField()
@@ -273,6 +302,7 @@ class ProposalApiarySerializer(serializers.ModelSerializer):
             'title',
             'proposal',
             'apiary_sites',
+            'site_transfer_apiary_sites',
             'longitude',
             'latitude',
             'on_site_information_list',
@@ -404,6 +434,7 @@ class TemporaryUseApiarySiteSerializer(serializers.ModelSerializer):
         )
 
 
+
 class ProposalApiaryTemporaryUseSerializer(serializers.ModelSerializer):
     proposal_id = serializers.IntegerField(write_only=True, required=False)
     # loaning_approval_id = serializers.IntegerField(write_only=True, required=False)
@@ -411,9 +442,31 @@ class ProposalApiaryTemporaryUseSerializer(serializers.ModelSerializer):
     temporary_use_apiary_sites = TemporaryUseApiarySiteSerializer(read_only=True, many=True)
     deed_poll_documents = serializers.SerializerMethodField()
     lodgement_number = serializers.CharField(source='proposal.lodgement_number', required=False, read_only=True)
+    # customer_status = serializers.CharField(source='proposal.customer_status', required=False, read_only=True)
+    customer_status = serializers.SerializerMethodField()
+    processing_status = serializers.SerializerMethodField()
 
     def validate(self, attr):
         return attr
+
+    def get_processing_status(self, obj):
+        status = obj.proposal.processing_status
+        ret = ''
+        for id, value in Proposal.PROCESSING_STATUS_CHOICES:
+            if id == status:
+                ret = value
+                break
+        return ret
+
+    def get_customer_status(self, obj):
+        status = obj.proposal.customer_status
+        ret = ''
+        for id, value in Proposal.CUSTOMER_STATUS_CHOICES:
+            if id == status:
+                ret = value
+                break
+        return ret
+
 
     def get_deed_poll_documents(self, obj):
         url_list = []
@@ -447,6 +500,8 @@ class ProposalApiaryTemporaryUseSerializer(serializers.ModelSerializer):
             'temporary_use_apiary_sites',
             'deed_poll_documents',
             'lodgement_number',
+            'customer_status',
+            'processing_status',
         )
 
 

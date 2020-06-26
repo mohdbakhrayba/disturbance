@@ -96,7 +96,7 @@ class Approval(RevisionedMixin):
         unique_together= ('lodgement_number', 'issue_date')
 
     @property
-    def relevantapplicant_id(self):
+    def relevant_applicant_id(self):
         if self.applicant:
             #return self.org_applicant.organisation.id
             return self.applicant.id

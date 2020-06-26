@@ -64,7 +64,22 @@
                     }
                 } catch(err) { }
                 return enabled;
-            }
+            },
+            apiary_sites_minimal: function() {
+                let apiary_sites = [];
+                for (let site of this.apiary_sites) {
+                    if (site.checked) {
+                        apiary_sites.push(site.id)
+                    }
+                    /*
+                    apiary_sites.push({
+                        'id': site.id,
+                        'checked': site.checked,
+                    })
+                    */
+                }
+                return apiary_sites;
+            },
         },
         watch:{
 
@@ -84,6 +99,8 @@
                     'activity': '',
                     'sub_activity1': '',
                     'application_type_str': 'site_transfer',
+                    'loaning_approval_id': this.approval_id,
+                    'apiary_sites_minimal': this.apiary_sites_minimal,
                     //'approval_id': this.approval_id,
                 }
                 return data
