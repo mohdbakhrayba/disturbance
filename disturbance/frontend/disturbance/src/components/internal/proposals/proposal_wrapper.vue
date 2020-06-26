@@ -7,8 +7,11 @@
         <ReturnDashTable level='external' :url='returns_url'/>
     </div-->
     <div v-if="proposalId">
-        <div v-if="apiaryApplication">
+        <div v-if="apiaryGroupApplication">
             <ProposalApiary :proposalId="proposalId"/>
+        </div>
+        <div v-else-if="temporaryUseApplication">
+            <ProposalTemporaryUse :proposalId="proposalId" />
         </div>
         <div v-else>
             <Proposal :proposalId="proposalId"/>
@@ -27,6 +30,7 @@ import ReturnDashTable from '@common-components/returns_dashboard.vue'
 //import Referral from './referral.vue';
 //import ApiaryReferral from './apiary_referral.vue';
 import ProposalApiary from './proposal_apiary.vue';
+import ProposalTemporaryUse from '@/components/internal/proposals/proposal_temporary_use.vue'
 import Proposal from './proposal.vue';
 import Vue from 'vue';
 import {
@@ -35,7 +39,7 @@ import {
 }
 from '@/utils/hooks'
 export default {
-    name: 'ProposalWrapper',
+    name: 'InternalProposalWrapper',
     data() {
         let vm = this;
         return {
@@ -59,12 +63,21 @@ export default {
         */
         Proposal,
         ProposalApiary,
+        ProposalTemporaryUse,
     },
     watch: {},
     computed: {
-        apiaryApplication: function() {
+        apiaryGroupApplication: function() {
             let retVal = false;
-            if (this.applicationTypeName === 'Apiary') {
+            //if (this.applicationTypeName === 'Apiary'){
+            if (['Apiary', 'Site Transfer'].includes(this.applicationTypeName)) {
+                retVal = true;
+            }
+            return retVal;
+        },
+        temporaryUseApplication: function() {
+            let retVal = false;
+            if (this.applicationTypeName === 'Temporary Use'){
                 retVal = true;
             }
             return retVal;

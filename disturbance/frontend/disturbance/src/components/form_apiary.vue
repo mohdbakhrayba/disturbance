@@ -11,7 +11,9 @@
 
         <div :class="apiary_sections_classname">
             <FormSection :formCollapse="false" label="Site Locations" Index="site_locations">
+
                 <div v-if="draftApiaryApplication">
+
                     <SiteLocations
                         :proposal="proposal"
                         id="site_locations"
@@ -20,6 +22,7 @@
                         :is_internal="is_internal"
                         @button_text="button_text"
                     />
+
                 </div>
                 <div v-else>
                     <ComponentSiteSelection
@@ -29,6 +32,7 @@
                         :key="component_site_selection_key"
                       />
                 </div>
+
             </FormSection>
 
             <FormSection :formCollapse="false" label="Deed Poll" Index="deed_poll">
@@ -77,10 +81,10 @@
 
 <script>
 
-    import SiteLocations from '@/components/common/apiary/site_locations.vue'
     import ComponentSiteSelection from '@/components/common/apiary/component_site_selection.vue'
     import FileField from '@/components/forms/filefield_immediate.vue'
     import FormSection from "@/components/forms/section_toggle.vue"
+    import SiteLocations from '@/components/common/apiary/site_locations.vue'
     import uuid from 'uuid'
     import {
         api_endpoints,
@@ -88,6 +92,7 @@
     }from '@/utils/hooks'
 
     export default {
+        name: 'ApiaryForm',
         props:{
             proposal:{
                 type: Object,

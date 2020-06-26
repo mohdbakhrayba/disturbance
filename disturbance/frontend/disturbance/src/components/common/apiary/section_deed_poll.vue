@@ -20,6 +20,7 @@
     import FileField from '@/components/forms/filefield_immediate.vue'
 
     export default {
+        name: 'SectionDeedPoll',
         props:{
             isRepeatable: {
                 type: Boolean,

@@ -53,8 +53,10 @@
                     'From',
                     'To',
                     'Site(s)',
+                    'Status',
                     'Temporary Occupier',
                     'Deed Poll',
+                    'Action',
                 ],
                 dtOptions: {
                     serverSide: false,
@@ -70,22 +72,26 @@
                     processing: true,
                     columns: [
                         {
+                            // Number
                             visible: true,
                             mRender: function (data, type, full) {
                                 return full.lodgement_number;
                             }
                         },
                         {
+                            // From date
                             mRender: function (data, type, full) {
                                 return full.from_date;
                             }
                         },
                         {
+                            // To date
                             mRender: function (data, type, full) {
                                 return full.to_date;
                             }
                         },
                         {
+                            // Site(s)
                             mRender: function (data, type, full) {
                                 let ret_str = ''
                                 for (let i=0; i<full.temporary_use_apiary_sites.length; i++){
@@ -97,13 +103,31 @@
                             }
                         },
                         {
+                            // Status (customer status)
+                            mRender: function (data, type, full) {
+                                return full.customer_status;
+                            }
+                        },
+                        {
+                            // Occupier name
                             mRender: function (data, type, full) {
                                 return full.temporary_occupier_name;
                             }
                         },
                         {
+                            // Deed poll
                             mRender: function (data, type, full) {
                                 return full.deed_poll_documents;
+                            }
+                        },
+                        {
+                            // Action
+                            mRender: function (data, type, full) {
+                                if (full.customer_status == 'Draft'){
+                                    return 'Edit(TODO)'
+                                } else {
+                                    return ''
+                                }
                             }
                         },
                     ],

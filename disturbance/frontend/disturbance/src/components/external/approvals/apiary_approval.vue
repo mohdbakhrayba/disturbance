@@ -1,9 +1,11 @@
 <template>
 <div class="container" id="externalApproval">
     <div class="row">
-        <h3>Approval {{ approval.lodgement_number }}</h3>
+        <div class="col-md-3">
+            <h3>Licence: {{ approval.lodgement_number }}</h3>
+        </div>
 
-        <div class="col-sm-12">
+        <div class="col-sm-9">
             <div class="row">
                 <FormSection :formCollapse="false" label="Holder" Index="holder">
                     <div v-if="organisationApplicant">

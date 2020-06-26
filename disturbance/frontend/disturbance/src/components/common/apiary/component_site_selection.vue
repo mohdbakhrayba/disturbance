@@ -266,13 +266,15 @@
                 this.component_map_key = uuid()
             },
             constructApiarySitesTable: function() {
-                // Clear table
-                this.$refs.table_apiary_site.vmDataTable.clear().draw();
+                if (this.$refs.table_apiary_site){
+                    // Clear table
+                    this.$refs.table_apiary_site.vmDataTable.clear().draw();
 
-                // Construct table
-                if (this.apiary_sites.length > 0){
-                    for(let i=0; i<this.apiary_sites.length; i++){
-                        this.addApiarySiteToTable(this.apiary_sites[i]);
+                    // Construct table
+                    if (this.apiary_sites.length > 0){
+                        for(let i=0; i<this.apiary_sites.length; i++){
+                            this.addApiarySiteToTable(this.apiary_sites[i]);
+                        }
                     }
                 }
             },

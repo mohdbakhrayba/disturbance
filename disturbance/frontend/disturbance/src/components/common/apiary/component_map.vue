@@ -159,17 +159,17 @@
                     case 'draft':
                         return new Stroke({color: '#616161', width: 2})
                     case 'pending':
-                        return new Fill({color: '#e0e0e0'})
+                        return new Stroke({color: '#616161', width: 2})
                     case 'current':
-                        return new Fill({color: '#e0e0e0'})
+                        return new Stroke({color: '#616161', width: 2})
                     case 'suspended':
-                        return new Fill({color: '#e0e0e0'})
+                        return new Stroke({color: '#616161', width: 2})
                     case 'not_to_be_reissued':
-                        return new Fill({color: '#e0e0e0'})
+                        return new Stroke({color: '#616161', width: 2})
                     case 'denied':
-                        return new Fill({color: '#e0e0e0'})
+                        return new Stroke({color: '#616161', width: 2})
                     case 'vacant':
-                        return new Fill({color: '#e0e0e0'})
+                        return new Stroke({color: '#616161', width: 2})
                 }
             },
             addApiarySite: function(apiary_site_geojson) {
