@@ -47,7 +47,7 @@
                         <div v-else-if="apiaryApprovals">
                             <div v-for="approval in apiaryApprovals">
                                 <input type="radio" name="approval_choice" :value="approval.id" v-model="proposal.proposal_apiary.selected_licence"/>
-                                Licence: {{approval.id}}
+                                Licence: {{approval.lodgement_number}}
                             </div>
                             <!--ul class="list-unstyled col-sm-12" v-for="approval in apiaryApprovals">
                                 <div class="row">

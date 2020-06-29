@@ -2274,9 +2274,11 @@ class ProposalApiary(models.Model):
         with transaction.atomic():
             try:
                 approval = None
-                if self.proposal.application_type == 'Apiary':
+                if self.proposal.application_type.name == 'Apiary':
+                #if self.proposal.application_type.name == ApplicationType.APIARY:
                     approval = self.retrieve_approval
-                elif self.proposal.application_type == 'Site Transfer':
+                elif self.proposal.application_type.name == 'Site Transfer':
+                #elif self.proposal.application_type.name == ApplicationType.SITE_TRANSFER:
                     approval = self.proposal.approval
 
                 #approval = None
