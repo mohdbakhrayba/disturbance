@@ -35,7 +35,7 @@
                                         </div>
                                         -->
                                     </div>
-                                    <div v-else>
+                                    <div v-else-if="behalf_of !== 'individual'">
                                         <p style="color:red"> You cannot add a New Disturbance because you do not have an associated Organisation. First add an Organisation. </p>
                                     </div>
                                 </div>

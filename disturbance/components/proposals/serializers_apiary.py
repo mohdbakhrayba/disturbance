@@ -953,7 +953,11 @@ class UserApiaryApprovalSerializer(serializers.ModelSerializer):
         #Individual applications
         for individual_approval in obj.disturbance_proxy_approvals.all():
             if individual_approval.apiary_approval:
-                approvals.append({'type': 'individual', 'id':individual_approval.lodgement_number})
+                approvals.append({
+                    'type': 'individual',
+                    'id':individual_approval.id,
+                    'lodgement_number':individual_approval.lodgement_number,
+                    })
                 individual_approvals = True
         #Organisation applications
         #import ipdb;ipdb.set_trace()
@@ -963,7 +967,11 @@ class UserApiaryApprovalSerializer(serializers.ModelSerializer):
             #organisation_approvals.append(user_delegation.organisation.disturbance_approvals.all())
             for organisation_approval in user_delegation.organisation.disturbance_approvals.all():
                 if organisation_approval.apiary_approval:
-                    approvals.append({'type': 'organisation', 'id':organisation_approval.lodgement_number})
+                    approvals.append({
+                        'type': 'organisation', 
+                        'id':organisation_approval.id,
+                        'lodgement_number':organisation_approval.lodgement_number,
+                        })
                     organisation_approvals = True
         #approvals.append(organisation_approvals)
 

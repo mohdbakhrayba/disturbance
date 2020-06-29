@@ -20,6 +20,7 @@ from disturbance.components.proposals.models import ProposalDocument, ProposalUs
 from disturbance.components.proposals.serializers import SaveProposalSerializer
 
 from disturbance.components.main.models import ApplicationType
+from disturbance.components.approvals.models import Approval
 from disturbance.components.proposals.models import (
     ProposalApiary,
     #ProposalApiaryTemporaryUse,
@@ -353,10 +354,53 @@ class SpecialFieldsSearch(object):
 # -------------------------------------------------------------------------------------------------------------
 
 def save_proponent_data(instance, request, viewset):
-    if instance.apiary_group_application_type:
+    #import ipdb;ipdb.set_trace()
+    if instance.application_type.name == 'Site Transfer':
+    #if instance.application_type.name == ApplicationType.SITE_TRANSFER:
+        save_proponent_data_apiary_site_transfer(instance, request, viewset)
+    elif instance.apiary_group_application_type:
         save_proponent_data_apiary(instance, request, viewset)
     else:
         save_proponent_data_disturbance(instance,request,viewset)
+
+def save_proponent_data_apiary_site_transfer(proposal_obj, request, viewset):
+    with transaction.atomic():
+        try:
+            data = {
+            }
+
+            try:
+                schema = request.data.get('schema')
+            except:
+                schema = request.POST.get('schema')
+
+            sc = json.loads(schema) if schema else {}
+
+            proposal_apiary_data = sc.get('proposal_apiary', None)
+            if proposal_apiary_data:
+                for new_answer in proposal_apiary_data['checklist_answers']:
+                    ans = ApiaryApplicantChecklistAnswer.objects.get(id=new_answer['id'])
+                    ans.answer = new_answer['answer']
+                    ans.save()
+            #save Site Transfer data
+            #site_transfer_data = request.data.get('apiary_site_transfer', None)
+            #if site_transfer_data:
+            #    serializer = ProposalApiarySiteTransferSerializer(proposal_obj.apiary_site_transfer, data=site_transfer_data)
+            #    serializer.is_valid(raise_exception=True)
+            #    serializer.save()
+            #import ipdb; ipdb.set_trace()
+            selected_licence = proposal_apiary_data.get('selected_licence')
+            if selected_licence:
+                approval = Approval.objects.get(id=selected_licence)
+                proposal_obj.approval = approval
+
+            # save/update any additonal special propoerties here
+            #proposal_obj.title = proposal_obj.proposal_apiary.title if hasattr(proposal_obj, 'proposal_apiary') else proposal_obj.title
+            proposal_obj.activity = proposal_obj.application_type.name
+            proposal_obj.save()
+
+        except Exception as e:
+            raise
 
 
 def save_proponent_data_apiary(proposal_obj, request, viewset):
@@ -456,11 +500,11 @@ def save_proponent_data_apiary(proposal_obj, request, viewset):
                 # return redirect(reverse('external-proposal-temporary-use-submit-success', kwargs={'proposal_pk': proposal_obj.id}))
 
             #save Site Transfer data
-            site_transfer_data = request.data.get('apiary_site_transfer', None)
-            if site_transfer_data:
-                serializer = ProposalApiarySiteTransferSerializer(proposal_obj.apiary_site_transfer, data=site_transfer_data)
-                serializer.is_valid(raise_exception=True)
-                serializer.save()
+            #site_transfer_data = request.data.get('apiary_site_transfer', None)
+            #if site_transfer_data:
+            #    serializer = ProposalApiarySiteTransferSerializer(proposal_obj.apiary_site_transfer, data=site_transfer_data)
+            #    serializer.is_valid(raise_exception=True)
+            #    serializer.save()
 
             # save/update any additonal special propoerties here
             proposal_obj.title = proposal_obj.proposal_apiary.title if hasattr(proposal_obj, 'proposal_apiary') else proposal_obj.title
