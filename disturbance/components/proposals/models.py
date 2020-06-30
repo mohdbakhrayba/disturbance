@@ -2549,6 +2549,37 @@ class ApiarySiteFee(RevisionedMixin):
         return '${} ({}:{})'.format(self.amount, self.date_of_enforcement, self.site_category)
 
 
+class ApiaryFee(RevisionedMixin):
+    #FEE_TYPE_APPLICATION = 'new_application'
+    #FEE_TYPE_AMENDMENT = 'amendment'
+    #FEE_TYPE_RENEWAL = 'renewal'
+    FEE_TYPE_TRANSFER = 'transfer'
+    FEE_TYPE_RENTAL = 'rental'
+    FEE_TYPE_CHOICES = (
+        #(FEE_TYPE_APPLICATION, 'New Application'),
+        #(FEE_TYPE_AMENDMENT, 'Amendment'),
+        #(FEE_TYPE_RENEWAL, 'Renewal'),
+        (FEE_TYPE_TRANSFER, 'Transfer'),
+        (FEE_TYPE_RENTAL, 'Rental'),
+    )
+    fee_type = models.CharField(unique=True, max_length=50, choices=FEE_TYPE_CHOICES,)
+
+    amount = models.DecimalField(max_digits=8, decimal_places=2, default='0.00')
+
+    #date_of_enforcement = models.DateField(blank=True, null=True)
+    date_from = models.DateField(blank=True, null=True)
+    #site_category = models.ForeignKey(SiteCategory, related_name='site_fees')
+    #apiary_site_fee_type = models.ForeignKey(ApiarySiteFeeType, null=True, blank=True)
+
+    class Meta:
+        app_label = 'disturbance'
+        ordering = ('date_from', )  # oldest record first, latest record last
+
+    def __str__(self):
+        #return '${} ({}:{})'.format(self.amount, self.date_of_enforcement, self.site_category)
+        return '${} ({}:{})'.format(self.id, self.amount, self.fee_type, self.date_from)
+
+
 # class SiteApplicationFee(RevisionedMixin):
 #     amount = models.DecimalField(max_digits=8, decimal_places=2, default='0.00')
 #     date_of_enforcement = models.DateField(blank=True, null=True)
