@@ -30,6 +30,7 @@
             :is_internal="false"
             :is_external="true"
             :key="component_site_selection_key"
+            @apiary_sites_updated="apiarySitesUpdated"
         />
 
     </div>
@@ -142,6 +143,10 @@
 
         },
         methods:{
+            apiarySitesUpdated: function(apiary_sites){
+                console.log(apiary_sites)
+                this.$emit('apiary_sites_updated', apiary_sites)
+            },
             //viewSiteOnMap: function(e){
             //    let apiary_site_id = e.target.getAttribute("data-apiary-site-id");
             //    console.log('view site-id: ' + apiary_site_id + ' on the map');

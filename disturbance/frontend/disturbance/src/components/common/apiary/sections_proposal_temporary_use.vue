@@ -13,6 +13,7 @@
                     :existing_temporary_uses="existing_temporary_uses"
                     @from_date_changed="fromDateChanged"
                     @to_date_changed="toDateChanged"
+                    @apiary_sites_updated="apiarySitesUpdated"
                     :key="period_and_sites_key"
                 />
             </template>
@@ -149,6 +150,13 @@
             },
             toDateChanged: function(value){
                 this.proposal.apiary_temporary_use.to_date = moment(value, 'DD/MM/YYYY');
+            },
+            apiarySitesUpdated: function(apiary_sites){
+                for (let i=0; i<apiary_sites.length; i++){
+                    let temporary_use_apiary_site = this.proposal.apiary_temporary_use.temporary_use_apiary_sites.find(element => element.apiary_site.id == apiary_sites[i].id)
+                    // Update temporary_use_apiary_site, which is sent to the backend when saving
+                    temporary_use_apiary_site.apiary_site = apiary_sites[i]
+                }
             },
             addEventListeners: function() {
 

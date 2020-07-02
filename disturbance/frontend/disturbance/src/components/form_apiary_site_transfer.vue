@@ -80,6 +80,8 @@
                     :is_internal="is_internal"
                     :is_external="is_external"
                     :key="component_site_selection_key"
+                    ref="component_site_selection"
+                    @apiary_sites_updated="apiarySitesUpdated"
                   />
             </FormSection>
 
@@ -192,6 +194,7 @@
                 lookupErrorText: '',
                 //selectedLicence: null,
                 component_site_selection_key: '',
+                apiary_sites_local: [],
             }
         },
         components: {
@@ -252,27 +255,20 @@
                 let sites = []
                 if (this.proposal && this.proposal.proposal_apiary) {
                     for (let site of this.proposal.proposal_apiary.site_transfer_apiary_sites) {
-                        sites.push(site.apiary_site)
+                        sites.push(site.apiary_site);
                     }
                 }
                 return sites;
             },
-
             /*
-            apiary_sites: function() {
+            site_transfer_apiary_sites: function(){
+                let sites = []
                 if (this.proposal && this.proposal.proposal_apiary) {
-                    return this.proposal.proposal_apiary.apiary_sites;
+                    for (let site of this.proposal.proposal_apiary.site_transfer_apiary_sites) {
+                        sites.push({'id': site.id, 'checked': site.apiary_site.checked})
+                    }
                 }
-            },
-            apiary_sites_minimal: function() {
-                let apiary_sites = [];
-                for (let site of this.apiary_sites) {
-                    apiary_sites.push({
-                        'id': site.id,
-                        'checked': site.checked,
-                    })
-                }
-                return apiary_sites;
+                return sites;
             },
             */
           //applicantType: function(){
@@ -280,6 +276,9 @@
           //},
         },
         methods:{
+            apiarySitesUpdated: function(apiarySitesLocal) {
+                this.apiary_sites_local = apiarySitesLocal;
+            },
             button_text: function(button_text) {
                 this.$emit('button_text', button_text)
             },
@@ -319,6 +318,13 @@
         mounted: function() {
             //let vm = this;
             this.component_site_selection_key = uuid()
+            // set initial checked status
+            if (this.proposal && this.proposal.proposal_apiary) {
+                for (let site of this.proposal.proposal_apiary.site_transfer_apiary_sites) {
+                    site.apiary_site.checked = site.selected;
+                }
+            }
+
             //vm.form = document.forms.new_proposal;
             //window.addEventListener('beforeunload', vm.leaving);
             //window.addEventListener('onblur', vm.leaving);

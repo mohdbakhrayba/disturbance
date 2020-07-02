@@ -215,8 +215,17 @@
                     <template v-if="approval && approval.id">
                         <ComponentSiteSelection
                             :apiary_sites="approval.apiary_sites"
+                            :show_col_checkbox="false"
                         />
                     </template>
+                </FormSection>
+            </div>
+
+            <div class="row">
+                <FormSection :formCollapse="false" label="Annual Rental Fee" Index="annual_rental_fee">
+                    <SectionAnnualRentalFee
+                        :is_readonly="false"
+                    />
                 </FormSection>
             </div>
 
@@ -260,6 +269,7 @@ import { api_endpoints, helpers } from '@/utils/hooks'
 import OnSiteInformation from '@/components/common/apiary/section_on_site_information.vue'
 import TemporaryUse from '@/components/common/apiary/section_temporary_use.vue'
 import ComponentSiteSelection from '@/components/common/apiary/component_site_selection.vue'
+import SectionAnnualRentalFee from '@/components/common/apiary/section_annual_rental_fee.vue'
 export default {
   name: 'ApiaryApproval',
   data() {
@@ -308,6 +318,7 @@ export default {
     }) 
   },
   components: {
+        SectionAnnualRentalFee,
         datatable,
         CommsLogs,
         FormSection,

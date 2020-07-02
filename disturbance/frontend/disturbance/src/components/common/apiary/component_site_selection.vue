@@ -5,7 +5,7 @@
             <div class="col-sm-6">
                 <datatable
                     ref="table_apiary_site"
-                    id="table-apiary-site"
+                    :id="table_id"
                     :dtOptions="dtOptions"
                     :dtHeaders="dtHeaders"
                 />
@@ -29,6 +29,7 @@
 </template>
 
 <script>
+    import Vue from 'vue'
     import datatable from '@vue-utils/datatable.vue'
     import uuid from 'uuid'
     import ComponentMap from '@/components/common/apiary/component_map.vue'
@@ -54,6 +55,10 @@
                 default: false,
             },
             show_col_checkbox: {
+                type: Boolean,
+                default: true,
+            },
+            enable_col_checkbox: {
                 type: Boolean,
                 default: true,
             },
@@ -96,12 +101,14 @@
         data: function(){
             let vm = this;
             return{
+                apiary_sites_local: JSON.parse(JSON.stringify(this.apiary_sites)),  // Deep copy the array
                 component_map_key: '',
+                table_id: uuid(), 
                 apiary_site_geojson_array: [],  // This is passed to the ComponentMap as props
                 default_checkbox_checked: false,  // If checked property isn't set as a apiary_site's property, this default value is used
                 dtHeaders: [
                     'Id',
-                    '',
+                    'C',
                     'Site',
                     'Longitude',
                     'Latitude',
@@ -133,11 +140,16 @@
                         {
                             // Checkbox
                             visible: vm.show_col_checkbox,
+                            className: 'dt-body-center',
                             mRender: function (data, type, apiary_site) {
+                                let disabled_str = ''
+                                if (!vm.enable_col_checkbox){
+                                    disabled_str = ' disabled '
+                                }
                                 if (apiary_site.checked){
-                                    return '<input type="checkbox" class="site_checkbox" data-apiary-site-id="' + apiary_site.id + '" checked/>'
+                                    return '<input type="checkbox" class="site_checkbox" data-apiary-site-id="' + apiary_site.id + '"' + disabled_str + ' checked/>'
                                 } else {
-                                    return '<input type="checkbox" class="site_checkbox" data-apiary-site-id="' + apiary_site.id + '" />'
+                                    return '<input type="checkbox" class="site_checkbox" data-apiary-site-id="' + apiary_site.id + '"' + disabled_str + '/>'
                                 }
                             }
                         },
@@ -228,10 +240,11 @@
             let vm = this;
             this.$nextTick(() => {
                 vm.addEventListeners();
-                this.ensureCheckedStatus();
-                this.constructApiarySitesTable();
-                this.addApiarySitesToMap(this.apiary_sites)
+                vm.constructApiarySitesTable();
+                vm.addApiarySitesToMap(vm.apiary_sites)
+                vm.ensureCheckedStatus();
             });
+            this.$emit('apiary_sites_updated', this.apiary_sites_local)
         },
         components: {
             ComponentMap,
@@ -242,6 +255,7 @@
         },
         methods: {
             ensureCheckedStatus: function() {
+                console.log('in ensureCheckedStatus')
                 if (this.apiary_sites.length > 0){
                     for(let i=0; i<this.apiary_sites.length; i++){
                         if (!this.apiary_sites[i].hasOwnProperty('checked')){
@@ -250,15 +264,25 @@
                     }
                 }
             },
-            checkboxClicked: function(e){
-                console.log('in checkboxClicked')
-                console.log(e)
+            forceToRefreshMap: function() {
+                console.log('forceToRefreshMap in component_site_selection.vue')
+                if (this.$refs.component_map){
+                    this.$refs.component_map.forceToRefreshMap()
+                }
             },
             displayAllFeatures: function(){
-                this.$refs.component_map.displayAllFeatures()
+                if (this.$refs.component_map){
+                    this.$refs.component_map.displayAllFeatures()
+                }
             },
             addApiarySitesToMap: function(apiary_sites) {
+                console.log('in addApiarySitesToMap')
                 for (let i=0; i<apiary_sites.length; i++){
+                    console.log(apiary_sites[i])
+                    if (apiary_sites[i].hasOwnProperty('checked')){
+                        //apiary_sites[i].as_geojson['properties']['checked'] = apiary_sites[i].checked
+                        apiary_sites[i].as_geojson.properties.checked = apiary_sites[i].checked
+                    }
                     this.apiary_site_geojson_array.push(apiary_sites[i].as_geojson)
                 }
 
@@ -282,9 +306,9 @@
                 this.$refs.table_apiary_site.vmDataTable.row.add(apiary_site).draw();
             },
             addEventListeners: function () {
-                $("#table-apiary-site").on("click", ".view_on_map", this.zoomOnApiarySite)
-                $("#table-apiary-site").on("click", ".toggle_availability", this.toggleAvailability)
-                $('#table-apiary-site').on('click', 'input[type="checkbox"]', this.checkboxClicked)
+                $("#" + this.table_id).on("click", ".view_on_map", this.zoomOnApiarySite)
+                $("#" + this.table_id).on("click", ".toggle_availability", this.toggleAvailability)
+                $("#" + this.table_id).on('click', 'input[type="checkbox"]', this.checkboxClicked)
             },
             updateApiarySite: function(site_updated) {
                 // Update internal apiary_site data
@@ -298,12 +322,13 @@
                 let vm = this;
                 let apiary_site_id = e.target.getAttribute("data-apiary-site-id");
                 let checked_status = e.target.checked
-                console.log(apiary_site_id)
-                for (let i=0; i<this.apiary_sites.length; i++){
-                    if (this.apiary_sites[i].id == apiary_site_id){
-                        this.apiary_sites[i].checked = checked_status
+                for (let i=0; i<this.apiary_sites_local.length; i++){
+                    if (this.apiary_sites_local[i].id == apiary_site_id){
+                        this.apiary_sites_local[i].checked = checked_status
                     }
                 }
+                this.$emit('apiary_sites_updated', this.apiary_sites_local)
+                this.$refs.component_map.setApiarySiteSelectedStatus(apiary_site_id, checked_status)
             },
             toggleAvailability: function(e) {
                 let vm = this;
@@ -347,5 +372,8 @@
 .view_all_button {
     color: #03a9f4;
     cursor: pointer;
+}
+.site_checkbox {
+    text-align: center;
 }
 </style>

@@ -55,7 +55,7 @@
                     :proposal="proposal"
                     id="proposalStart"
                     :showSections="sectionShow"
-                    ref="proposal_apiary"
+                    ref="apiary_site_transfer"
                     :is_external="true"
                     @button_text="button_text"
                 />
@@ -227,6 +227,17 @@ export default {
             let formData = new FormData(vm.form);
             // Add apiary_sites data if needed
             formData = this.attach_apiary_sites_data(formData)
+            // Add site_transfer_apiary_sites data if needed
+            /*
+            if (this.$refs.apiary_site_transfer && this.$refs.apiary_site_transfer.site_transfer_apiary_sites) {
+                console.log(this.$refs.apiary_site_transfer.site_transfer_apiary_sites)
+                formData.append('site_transfer_apiary_sites', JSON.stringify(this.$refs.apiary_site_transfer.site_transfer_apiary_sites));
+            }
+            */
+            if (this.$refs.apiary_site_transfer && this.$refs.apiary_site_transfer.apiary_sites_local) {
+                //console.log(this.$refs.apiary_site_transfer.site_transfer_apiary_sites)
+                formData.append('apiary_sites_local', JSON.stringify(this.$refs.apiary_site_transfer.apiary_sites_local));
+            }
 
             console.log('formData: ')
             console.log(formData)
@@ -484,7 +495,7 @@ export default {
                 console.log('in then()');
                 vm.submittingProposal = true;
                 // Only Apiary has an application fee
-                if (!vm.proposal.fee_paid && vm.proposal.application_type=='Apiary') {
+                if (!vm.proposal.fee_paid && ['Apiary', 'Site Transfer'].includes(vm.proposal.application_type)) {
                     vm.save_and_redirect();
                 } else {
                     /* just save and submit - no payment required (probably application was pushed back by assessor for amendment */
@@ -516,7 +527,9 @@ export default {
             vm.form=document.forms.new_proposal;
             let formData = new FormData(vm.form);
             // Add apiary_sites data if needed
-            formData = this.attach_apiary_sites_data(formData)
+            if (this.proposal.application_type === 'Apiary') {
+                formData = this.attach_apiary_sites_data(formData);
+            }
 
             vm.$http.post(vm.proposal_submit_url,formData).then(res=>{
                 /* after the above save, redirect to the Django post() method in ApplicationFeeView */

@@ -240,6 +240,7 @@ class ApiarySiteSerializer(serializers.ModelSerializer):
             'coordinates',
             'as_geojson',
             'status',
+            'workflow_selected_status',
         )
 
 
@@ -257,6 +258,7 @@ class ApiarySiteGeojsonSerializer(GeoFeatureModelSerializer):
             'wkb_geometry',
             'site_category_name',
             'status',
+            'workflow_selected_status',
         )
 
 
@@ -294,6 +296,7 @@ class ProposalApiarySerializer(serializers.ModelSerializer):
     #checklist_questions = serializers.SerializerMethodField()
     checklist_answers = serializers.SerializerMethodField()
     site_remainders = serializers.SerializerMethodField()
+    sending_approval_lodgement_number = serializers.SerializerMethodField()
 
     class Meta:
         model = ProposalApiary
@@ -309,7 +312,15 @@ class ProposalApiarySerializer(serializers.ModelSerializer):
             #'checklist_questions',
             'checklist_answers',
             'site_remainders',
+            'sending_approval_id',
+            'sending_approval_lodgement_number',
         )
+
+    def get_sending_approval_lodgement_number(self, obj):
+        lodgement_number = None
+        if obj.sending_approval:
+            lodgement_number = obj.sending_approval.lodgement_number
+        return lodgement_number
 
     def get_site_remainders(self, proposal_apiary):
         today_local = datetime.now(pytz.timezone(TIME_ZONE)).date()
@@ -387,6 +398,8 @@ class ProposalApiarySerializer(serializers.ModelSerializer):
 class SaveProposalApiarySerializer(serializers.ModelSerializer):
     proposal_id = serializers.IntegerField(
             required=True, write_only=True, allow_null=False)
+    sending_approval_id = serializers.IntegerField(
+            required=True, write_only=True, allow_null=False)
 
     class Meta:
         model = ProposalApiary
@@ -396,6 +409,7 @@ class SaveProposalApiarySerializer(serializers.ModelSerializer):
             'id',
             'title',
             'proposal_id',
+            'sending_approval_id',
             # 'location',
             #'apiary_sites',
             'longitude',
@@ -945,13 +959,20 @@ class UserApiaryApprovalSerializer(serializers.ModelSerializer):
                 )
 
     def get_apiary_approvals(self, obj):
+        sending_approval_id = self.context.get('sending_approval_id')
+        print(sending_approval_id)
         #return 'apiary_approvals'
         approvals = []
         multiple_approvals = False
         individual_approvals = False
         organisation_approvals = False
         #Individual applications
-        for individual_approval in obj.disturbance_proxy_approvals.all():
+        for individual_approval in obj.disturbance_proxy_approvals.filter(
+                status='current', 
+                apiary_approval=True
+                ).exclude(id=sending_approval_id
+                        ):
+            #approval = Approval.objects.filter(applicant=self.proposal.applicant, status='current', apiary_approval=True).first()
             if individual_approval.apiary_approval:
                 approvals.append({
                     'type': 'individual',
@@ -965,7 +986,11 @@ class UserApiaryApprovalSerializer(serializers.ModelSerializer):
         #organisation_approvals = []
         for user_delegation in user_delegations:
             #organisation_approvals.append(user_delegation.organisation.disturbance_approvals.all())
-            for organisation_approval in user_delegation.organisation.disturbance_approvals.all():
+            for organisation_approval in user_delegation.organisation.disturbance_approvals.filter(
+                    status='current',
+                    apiary_approval=True
+                    ).exclude(id=sending_approval_id
+                            ):
                 if organisation_approval.apiary_approval:
                     approvals.append({
                         'type': 'organisation', 
@@ -979,10 +1004,4 @@ class UserApiaryApprovalSerializer(serializers.ModelSerializer):
             multiple_approvals = True
 
         return {'approvals': approvals, 'multiple': multiple_approvals}
-
-
-
-
-
-
 
