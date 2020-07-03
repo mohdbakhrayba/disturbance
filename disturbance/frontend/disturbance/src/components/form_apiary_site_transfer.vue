@@ -80,6 +80,7 @@
                     :is_internal="is_internal"
                     :is_external="is_external"
                     :key="component_site_selection_key"
+                    :show_col_checkbox="showColCheckbox"
                     ref="component_site_selection"
                     @apiary_sites_updated="apiarySitesUpdated"
                   />
@@ -247,18 +248,26 @@
                         }
                     }
                 }
-
                 return UnansweredChecklistQuestions;
-
             },
             apiary_sites: function() {
                 let sites = []
                 if (this.proposal && this.proposal.proposal_apiary) {
                     for (let site of this.proposal.proposal_apiary.site_transfer_apiary_sites) {
-                        sites.push(site.apiary_site);
+                        // show all sites in Draft; only selected sites after customer submits
+                        if (this.proposal.customer_status === 'Draft' || site.selected) {
+                            sites.push(site.apiary_site);
+                        }
                     }
                 }
                 return sites;
+            },
+            showColCheckbox: function() {
+                let show = false;
+                if (this.proposal && this.proposal.customer_status === 'Draft') {
+                    show = true;
+                }
+                return show;
             },
             /*
             site_transfer_apiary_sites: function(){

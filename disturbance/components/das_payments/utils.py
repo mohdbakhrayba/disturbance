@@ -16,7 +16,7 @@ from disturbance.components.main.models import ApplicationType
 from disturbance.components.proposals.models import Proposal, ProposalUserAction, SiteCategory, ApiarySiteFeeType, \
     ApiarySiteFeeRemainder
 from disturbance.components.organisations.models import Organisation
-from disturbance.components.das_payments.models import ApplicationFee
+from disturbance.components.das_payments.models import ApplicationFee, AnnualRentalFee, AnnualRentalFeeInvoice
 from ledger.checkout.utils import create_basket_session, create_checkout_session, calculate_excl_gst
 from ledger.payments.models import Invoice
 from ledger.payments.utils import oracle_parser
@@ -25,6 +25,9 @@ import ast
 from decimal import Decimal
 
 import logging
+
+from disturbance.settings import PAYMENT_SYSTEM_ID
+
 logger = logging.getLogger('payment_checkout')
 
 def get_session_application_invoice(session):
@@ -265,29 +268,81 @@ def oracle_integration(date,override):
     oracle_codes = oracle_parser(date, system, 'Disturbance Approval System', override=override)
 
 
-#def create_invoice(booking, payment_method='bpay'):
-#    """
-#    This will create and invoice and order from a basket bypassing the session
-#    and payment bpoint code constraints.
-#    """
-#    from ledger.checkout.utils import createCustomBasket
-#    from ledger.payments.invoice.utils import CreateInvoiceBasket
-#    from ledger.accounts.models import EmailUser
-#    from decimal import Decimal
-#
-#    products = Booking.objects.last().as_line_items
-#    user = EmailUser.objects.get(email=booking.proposal.applicant_email.lower())
-#
-#    if payment_method=='monthly_invoicing':
-#        invoice_text = 'Monthly Payment Invoice'
-#    elif payment_method=='bpay':
-#        invoice_text = 'BPAY Payment Invoice'
-#    else:
-#        invoice_text = 'Payment Invoice'
-#
-#    basket  = createCustomBasket(products, user, settings.PAYMENT_SYSTEM_ID)
-#    order = CreateInvoiceBasket(payment_method=payment_method, system=settings.PAYMENT_SYSTEM_PREFIX).create_invoice_and_order(basket, 0, None, None, user=user, invoice_text=invoice_text)
-#
-#    return order
+def create_other_invoice_for_annual_rental_fee(approval, request=None):
+    """
+    This function is called from the cron job to issue annual rental fee invoices
+    """
+    with transaction.atomic():
+        try:
+            logger.info('Creating OTHER invoice for the licence: {}'.format(approval.lodgement_number))
+            order = create_invoice(approval, payment_method='other')
+            invoice = Invoice.objects.get(order_number=order.number)
+
+            # Create AnnualRentalFee object, which is linked from the approval
+            # TODO: add 'calendar_year' field?
+            # TODO: update 'cost' field?
+            # TODO: add 'status' field or so?
+            annual_rental_fee = AnnualRentalFee.objects.create(approval=approval)
+
+            # Create AnnualRentalFeeInvoice object, which is linked form the annual_rental_fee object created above
+            annual_rental_fee_invoice, created = AnnualRentalFeeInvoice.objects.get_or_create(
+                annual_rental_fee=annual_rental_fee,
+                invoice_reference=invoice.reference
+            )
+
+            return invoice
+
+        except Exception, e:
+            logger.error('Failed to create OTHER invoice for sanction outcome: {}'.format(approval))
+            logger.error('{}'.format(e))
 
 
+def create_invoice(approval, payment_method='bpay'):
+    """
+    This will create and invoice and order from a basket bypassing the session
+    and payment bpoint code constraints.
+    """
+    from ledger.checkout.utils import createCustomBasket
+    from ledger.payments.invoice.utils import CreateInvoiceBasket
+
+    products = generate_line_items_for_annual_rental_fee(approval)
+    user = approval.relevant_applicant
+    invoice_text = 'Annual Rental Fee Invoice'
+
+    basket = createCustomBasket(products, user, PAYMENT_SYSTEM_ID)
+    order = CreateInvoiceBasket(
+        payment_method=payment_method,
+        system=PAYMENT_SYSTEM_ID
+    ).create_invoice_and_order(basket, 0, None, None, user=user, invoice_text=invoice_text)
+
+    return order
+
+
+def calculate_total_annual_rental_fee():
+    # TODO: implement
+    #       Calendar year
+    #       Rent fee can be retrieved from the ApiaryAnnualRentFee class
+    #       Run date can be retrieved from the ApiaryAnnualRentFeeRunDate class
+    return 123.45
+
+
+def generate_line_items_for_annual_rental_fee(approval):
+    """ Create the ledger lines - line item for the annual rental fee sent to payment system """
+
+    now = datetime.now()
+    now_date = now.date()
+
+    penalty_amount = calculate_total_annual_rental_fee()
+
+    line_items = [
+        {'ledger_description': 'Annual Rental Fee: {}, Issued: {} {}'.format(
+            approval.lodgement_number,
+            now.strftime("%d/%m/%Y"),  # TODO: is now fine?
+            now.strftime("%I:%M %p")), # TODO: is now fine?
+            'oracle_code': 'ABC123 GST',
+            'price_incl_tax': penalty_amount,
+            'price_excl_tax': penalty_amount,
+            'quantity': 1,
+        },
+    ]
+    return line_items

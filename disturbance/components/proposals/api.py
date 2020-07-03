@@ -481,7 +481,7 @@ class ProposalApiaryViewSet(viewsets.ModelViewSet):
         #application_type = Proposal.objects.get(id=self.kwargs.get('pk')).application_type.name
         instance = self.get_object()
         application_type = instance.proposal.application_type.name
-        if application_type == ApplicationType.APIARY:
+        if application_type in (ApplicationType.APIARY, ApplicationType.SITE_TRANSFER):
             return ApiaryInternalProposalSerializer
             #return InternalProposalSerializer
         else:
@@ -1655,23 +1655,22 @@ class ProposalViewSet(viewsets.ModelViewSet):
                     serializer = SaveProposalApiarySerializer(data=details_data)
                     serializer.is_valid(raise_exception=True)
                     proposal_apiary = serializer.save()
+                    # Set proposal applicant
+                    if approval.applicant:
+                        proposal_obj.applicant = approval.applicant
+                    else:
+                        proposal_obj.proxy_applicant = approval.proxy_applicant
+                    proposal_obj.save()
+                    # Set up checklist questions
                     for question in ApiaryApplicantChecklistQuestion.objects.filter(checklist_type='site_transfer'):
                         new_answer = ApiaryApplicantChecklistAnswer.objects.create(proposal = proposal_apiary,
                                                                                    question = question)
-                    # Save ApiarySites
-                    #checked_apiary_sites = request.data.get('apiary_sites_minimal')
-                    #for apiary_site in approval.apiary_sites.filter(id__in=checked_apiary_sites):
+                    # Save approval apiary sites to site transfer proposal
                     for apiary_site in approval.apiary_sites.all():
                         SiteTransferApiarySite.objects.create(
                                 proposal_apiary=proposal_apiary,
                                 apiary_site=apiary_site
                                 )
-                    #for apiary_site in approval.apiary_sites.all():
-                    #    new_apiary_site = deepcopy(apiary_site)
-                    #    new_apiary_site.id = None
-                    #    new_apiary_site.approval = None
-                    #    new_apiary_site.proposal_apiary = proposal_apiary
-                    #    new_apiary_site.save()
 
                 elif application_type.name == ApplicationType.TEMPORARY_USE:
                     approval_id = request.data.get('approval_id')

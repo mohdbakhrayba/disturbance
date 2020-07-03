@@ -11,8 +11,8 @@ from django.conf.urls import url
 from django.template.response import TemplateResponse
 from django.http import HttpResponse, HttpResponseRedirect
 
-from disturbance.components.proposals.models import SiteCategory, ApiarySiteFee, ApiarySiteFeeType, ApiaryAnnualRentFee, \
-    ApiaryAnnualRentFeeRunDate
+from disturbance.components.proposals.models import SiteCategory, ApiarySiteFee, ApiarySiteFeeType, ApiaryAnnualRentalFee, \
+    ApiaryAnnualRentalFeeRunDate
 from disturbance.utils import create_helppage_object
 # Register your models here.
 
@@ -175,12 +175,12 @@ class GlobalSettingsAdmin(admin.ModelAdmin):
     list_display = ['key', 'value']
     ordering = ('key',)
 
-@admin.register(ApiaryAnnualRentFee)
-class ApiaryAnnualRentFeeAdmin(admin.ModelAdmin):
+@admin.register(ApiaryAnnualRentalFee)
+class ApiaryAnnualRentalFeeAdmin(admin.ModelAdmin):
     pass
 
-@admin.register(ApiaryAnnualRentFeeRunDate)
-class ApiaryAnnualRentFeeRunDateAdmin(admin.ModelAdmin):
+@admin.register(ApiaryAnnualRentalFeeRunDate)
+class ApiaryAnnualRentalFeeRunDateAdmin(admin.ModelAdmin):
     pass
 
 # class SiteApplicationFeeInline(admin.TabularInline):

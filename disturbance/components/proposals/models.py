@@ -2413,12 +2413,22 @@ class ProposalApiary(models.Model):
                         #        site.approval = approval
                         #import ipdb;ipdb.set_trace()
                         # for site in self.apiary_sites.all():
-                        sites_approved = request.data.get('apiary_sites', [])
-                        for my_site in sites_approved:
-                            if my_site['checked']:
-                                a_site = ApiarySite.objects.get(id=my_site['id'])
-                                a_site.approval = approval
-                                a_site.save()
+                        if self.proposal.application_type.name == ApplicationType.SITE_TRANSFER:
+                            # update approval for all selected apiary sites
+                            transfer_sites = SiteTransferApiarySite.objects.filter(
+                                    proposal_apiary=self,
+                                    selected=True
+                                    )
+                            for site in transfer_sites:
+                                site.apiary_site.approval = approval
+                                site.apiary_site.save()
+                        else:
+                            sites_approved = request.data.get('apiary_sites', [])
+                            for my_site in sites_approved:
+                                if my_site['checked']:
+                                    a_site = ApiarySite.objects.get(id=my_site['id'])
+                                    a_site.approval = approval
+                                    a_site.save()
 
                         #print approval,approval.id, created
                     # Generate compliances
@@ -2559,7 +2569,7 @@ class ApiarySiteFee(RevisionedMixin):
         return '${} ({}:{})'.format(self.amount, self.date_of_enforcement, self.site_category)
 
 
-class ApiaryAnnualRentFee(RevisionedMixin):
+class ApiaryAnnualRentalFee(RevisionedMixin):
     amount = models.DecimalField(max_digits=8, decimal_places=2, default='0.00')
     date_from = models.DateField(blank=True, null=True)
 
@@ -2571,7 +2581,7 @@ class ApiaryAnnualRentFee(RevisionedMixin):
         return 'id: {}, Amount: {}: From: {}'.format(self.id, self.amount, self.date_from)
 
 
-class ApiaryAnnualRentFeeRunDate(RevisionedMixin):
+class ApiaryAnnualRentalFeeRunDate(RevisionedMixin):
     NAME_CRON = 'date_to_run_cron_job'
     NAME_CHOICES = (
         (NAME_CRON, 'Date to run job'),

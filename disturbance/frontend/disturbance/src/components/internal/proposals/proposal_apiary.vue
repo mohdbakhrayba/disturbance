@@ -446,6 +446,7 @@
             ref="proposed_approval" 
             :processing_status="proposal.processing_status" 
             :proposal_apiary_id="apiaryProposal.id" 
+            :proposal_id="proposalId" 
             :proposal="proposal"
             :proposal_type='proposal.proposal_type' 
             :isApprovalLevelDocument="isApprovalLevelDocument" 
