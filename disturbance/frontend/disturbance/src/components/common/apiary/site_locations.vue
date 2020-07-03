@@ -552,6 +552,10 @@
                     let modifyTool = new Modify({
                         source: vm.drawingLayerSource,
                     });
+                    //modifyTool.on("modifystart", function(attributes){
+                    //    console.log('modifystart')
+                    //    console.log(attributes)
+                    //});
                     modifyTool.on("modifyend", function(attributes){
                         console.log('modifyend')
                         // this will list all features in layer, not so useful without cross referencing
@@ -559,6 +563,17 @@
                             let index = modifyInProgressList.indexOf(feature);
                             if (index > -1) {
                                 console.log("End Modify Feature: " + index + "/" + modifyInProgressList.length + " " + feature.getId());
+
+                                let coords = feature.getGeometry().getCoordinates()
+                                console.log(coords)
+                                //let valid = vm.isNewPositionValid(coords, function(fe){
+                                //    console.log('filter function')
+                                //    console.log(fe)
+                                //    return true
+                                //})
+                                let valid = vm.isNewPositionValid(coords, vm.excludeFeature)
+                                console.log(valid)
+
                                 modifyInProgressList.splice(index, 1);
                                 //vm.updateVueFeature(feature);
                                 vm.removeBufferForSite(feature);
@@ -572,8 +587,13 @@
                 }
                 console.log('initMap end')
             },  // End: initMap()
-            tryCreateNewSiteFromForm: function()
-            {
+            excludeFeature: function(f) {
+                console.log('in excludeFeature')
+                console.log('TODO: implement this function')
+                console.log(f)
+                return true
+            },
+            tryCreateNewSiteFromForm: function(){
                 console.log('in tryCreateNewSiteFromForm')
 
                 let lat = this.proposal.proposal_apiary.latitude

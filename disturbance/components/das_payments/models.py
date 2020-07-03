@@ -6,6 +6,8 @@ from django.utils.encoding import python_2_unicode_compatible
 from django.utils import timezone
 from ledger.accounts.models import EmailUser, RevisionedMixin
 from ledger.payments.models import Invoice
+
+from disturbance.components.approvals.models import Approval
 from disturbance.components.proposals.models import Proposal
 from decimal import Decimal as D
 from ledger.checkout.utils import calculate_excl_gst
@@ -13,8 +15,8 @@ from ledger.checkout.utils import calculate_excl_gst
 import logging
 logger = logging.getLogger(__name__)
 
-class Payment(RevisionedMixin):
 
+class Payment(RevisionedMixin):
     send_invoice = models.BooleanField(default=False)
     confirmation_sent = models.BooleanField(default=False)
     created = models.DateTimeField(auto_now_add=True)
@@ -48,7 +50,6 @@ class Payment(RevisionedMixin):
         if self.active_invoice:
             return self.active_invoice.payment_amount
         return amount
-
 
     def __check_invoice_payment_status(self):
         invoices = []
@@ -103,8 +104,6 @@ class ApplicationFee(Payment):
         (PAYMENT_TYPE_RECEPTION, 'Reception booking'),
         (PAYMENT_TYPE_BLACK, 'Black booking'),
         (PAYMENT_TYPE_TEMPORARY, 'Temporary reservation'),
-#        (4, 'Cancelled Booking'),
-#        (5, 'Changed Booking')
     )
 
     proposal = models.ForeignKey(Proposal, on_delete=models.PROTECT, blank=True, null=True, related_name='application_fees')
@@ -117,6 +116,31 @@ class ApplicationFee(Payment):
 
     class Meta:
         app_label = 'disturbance'
+
+
+class AnnualRentFee(Payment):
+    PAYMENT_TYPE_INTERNET = 0
+    PAYMENT_TYPE_RECEPTION = 1
+    PAYMENT_TYPE_BLACK = 2
+    PAYMENT_TYPE_TEMPORARY = 3
+    PAYMENT_TYPE_CHOICES = (
+        (PAYMENT_TYPE_INTERNET, 'Internet booking'),
+        (PAYMENT_TYPE_RECEPTION, 'Reception booking'),
+        (PAYMENT_TYPE_BLACK, 'Black booking'),
+        (PAYMENT_TYPE_TEMPORARY, 'Temporary reservation'),
+    )
+
+    approval = models.ForeignKey(Approval, on_delete=models.PROTECT, blank=True, null=True, related_name='annual_rent_fees')
+    payment_type = models.SmallIntegerField(choices=PAYMENT_TYPE_CHOICES, default=0)
+    cost = models.DecimalField(max_digits=8, decimal_places=2, default='0.00')
+    created_by = models.ForeignKey(EmailUser, on_delete=models.PROTECT, blank=True, null=True, related_name='created_by_annual_rent_fee')
+
+    def __str__(self):
+        return 'Approval {} : Invoice {}'.format(self.approval, self.annual_rent_fee_invoices.last())
+
+    class Meta:
+        app_label = 'disturbance'
+
 
 class ApplicationFeeInvoice(RevisionedMixin):
     application_fee = models.ForeignKey(ApplicationFee, related_name='application_fee_invoices')
@@ -138,8 +162,30 @@ class ApplicationFeeInvoice(RevisionedMixin):
         return False
 
 
+class AnnualRentFeeInvoice(RevisionedMixin):
+    annual_rent_fee = models.ForeignKey(AnnualRentFee, related_name='annual_rent_fee_invoices')
+    invoice_reference = models.CharField(max_length=50, null=True, blank=True, default='')
+
+    def __str__(self):
+        return 'Annual Rent Fee {} : Invoice #{}'.format(self.id, self.invoice_reference)
+
+    class Meta:
+        app_label = 'disturbance'
+
+    @property
+    def active(self):
+        try:
+            invoice = Invoice.objects.get(reference=self.invoice_reference)
+            return False if invoice.voided else True
+        except Invoice.DoesNotExist:
+            pass
+        return False
+
+
 import reversion
 reversion.register(ApplicationFee, follow=['application_fee_invoices'])
 reversion.register(ApplicationFeeInvoice)
+reversion.register(AnnualRentFee, follow=['annual_rent_fee_invoices'])
+reversion.register(AnnualRentFeeInvoice)
 
 

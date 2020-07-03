@@ -16,6 +16,8 @@
             :is_internal="false"
             :is_external="true"
             :key="component_site_selection_key"
+            :show_col_checkbox="false"
+            :show_col_id="true"
         />
     </div>
 </template>
@@ -27,6 +29,7 @@
     import ComponentSiteSelection from '@/components/common/apiary/component_site_selection.vue'
 
     export default {
+        name: 'ApiarySiteAvailability',
         props:{
             approval_id: {
                 type: Number,
@@ -65,21 +68,17 @@
                 } catch(err) { }
                 return enabled;
             },
+            /*
             apiary_sites_minimal: function() {
                 let apiary_sites = [];
                 for (let site of this.apiary_sites) {
                     if (site.checked) {
                         apiary_sites.push(site.id)
                     }
-                    /*
-                    apiary_sites.push({
-                        'id': site.id,
-                        'checked': site.checked,
-                    })
-                    */
                 }
                 return apiary_sites;
             },
+            */
         },
         watch:{
 
@@ -99,8 +98,8 @@
                     'activity': '',
                     'sub_activity1': '',
                     'application_type_str': 'site_transfer',
-                    'loaning_approval_id': this.approval_id,
-                    'apiary_sites_minimal': this.apiary_sites_minimal,
+                    'sending_approval_id': this.approval_id,
+                    //'apiary_sites_minimal': this.apiary_sites_minimal,
                     //'approval_id': this.approval_id,
                 }
                 return data

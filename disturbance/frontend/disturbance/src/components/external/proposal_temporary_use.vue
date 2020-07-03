@@ -1,7 +1,7 @@
 <template>
     <div class="row">
         <div class="col-md-3">
-            <h3>Application: {{ proposal.lodgement_number }}</h3>
+            <h3 v-if="proposal">Application: {{ proposal.lodgement_number }}</h3>
             <h4>Temporary Use</h4>
         </div>
 

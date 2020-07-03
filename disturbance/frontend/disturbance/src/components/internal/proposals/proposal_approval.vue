@@ -1,5 +1,6 @@
 <template id="proposal_requirements">
     <div>
+        proposal_approval.vue
         <template v-if="isFinalised">
             <div class="col-md-12 alert alert-success" v-if="proposal.processing_status == 'Approved'">
                 <p>The approval has been issued and has been emailed to {{proposal.applicant.name}}</p>
@@ -18,7 +19,8 @@
                     :is_internal="true"
                     :is_external="false"
                     :key="component_site_selection_key"
-
+                    :show_col_checkbox="true"
+                    :enable_col_checkbox="false"
                 />
             </FormSection>
         </template>

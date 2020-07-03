@@ -135,7 +135,7 @@ def send_approval_surrender_email_notification(approval, future_surrender=False)
         'future_surrender': future_surrender           
     }
     all_ccs = []
-    if proposal.applicant.email:
+    if proposal.applicant and proposal.applicant.email:
         cc_list = proposal.applicant.email
         if cc_list:
             all_ccs = [cc_list]
@@ -148,7 +148,8 @@ def send_approval_surrender_email_notification(approval, future_surrender=False)
         sender_user = EmailUser.objects.get(email__icontains=sender)   
     msg = email.send(proposal.submitter.email, cc=all_ccs, context=context)
     _log_approval_email(msg, approval, sender=sender_user)
-    _log_org_email(msg, proposal.applicant, proposal.submitter, sender=sender_user)
+    if proposal.applicant:
+        _log_org_email(msg, proposal.applicant, proposal.submitter, sender=sender_user)
 
 #approval renewal notice
 def send_approval_renewal_email_notification(approval):

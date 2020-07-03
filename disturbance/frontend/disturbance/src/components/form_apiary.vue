@@ -29,6 +29,7 @@
                         :apiary_sites="apiary_sites"
                         :is_internal="is_internal"
                         :is_external="is_external"
+                        :show_col_checkbox="false"
                         :key="component_site_selection_key"
                       />
                 </div>

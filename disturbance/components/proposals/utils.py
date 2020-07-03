@@ -8,21 +8,15 @@ from django.db import transaction
 from django.contrib.gis.geos import Point, GEOSGeometry
 from preserialize.serialize import serialize
 from ledger.accounts.models import EmailUser, Document
-# <<<<<<< HEAD
 from disturbance.components.proposals.models import ProposalDocument, ProposalUserAction, ApiarySite, SiteCategory, \
     ProposalApiaryTemporaryUse, TemporaryUseApiarySite, ApiaryApplicantChecklistAnswer
-# ||||||| merged common ancestors
-# from disturbance.components.proposals.models import ProposalDocument, ProposalUserAction, ApiarySite, SiteCategory
-# =======
-# from disturbance.components.proposals.models import ProposalDocument, ProposalUserAction, ApiarySite, SiteCategory, \
-#     ApiaryApplicantChecklistAnswer
-# >>>>>>> 1199cfade15f594dbeb87911b405a4cd30fa2307
 from disturbance.components.proposals.serializers import SaveProposalSerializer
 
 from disturbance.components.main.models import ApplicationType
 from disturbance.components.approvals.models import Approval
 from disturbance.components.proposals.models import (
     ProposalApiary,
+    SiteTransferApiarySite,
     #ProposalApiaryTemporaryUse,
     #ProposalApiarySiteTransfer,
 )
@@ -366,6 +360,7 @@ def save_proponent_data(instance, request, viewset):
 def save_proponent_data_apiary_site_transfer(proposal_obj, request, viewset):
     with transaction.atomic():
         try:
+            #import ipdb; ipdb.set_trace()
             data = {
             }
 
@@ -382,13 +377,31 @@ def save_proponent_data_apiary_site_transfer(proposal_obj, request, viewset):
                     ans = ApiaryApplicantChecklistAnswer.objects.get(id=new_answer['id'])
                     ans.answer = new_answer['answer']
                     ans.save()
-            #save Site Transfer data
-            #site_transfer_data = request.data.get('apiary_site_transfer', None)
-            #if site_transfer_data:
-            #    serializer = ProposalApiarySiteTransferSerializer(proposal_obj.apiary_site_transfer, data=site_transfer_data)
-            #    serializer.is_valid(raise_exception=True)
-            #    serializer.save()
-            #import ipdb; ipdb.set_trace()
+
+            #save Site Transfer Apiary Sites
+            #site_transfer_apiary_sites = json.loads(request.data.get('site_transfer_apiary_sites'))
+            #site_transfer_apiary_sites = request.data.get('site_transfer_apiary_sites')
+            #if site_transfer_apiary_sites:
+            #    for site in site_transfer_apiary_sites:
+            #        #print(site.get('id'))
+            #        #print(site.get('checked'))
+            #        checked_value = bool(site.get('checked'))
+            #        site_transfer_apiary_site = SiteTransferApiarySite.objects.get(id=site.get('id'))
+            #        site_transfer_apiary_site.selected = checked_value
+            #        site_transfer_apiary_site.save()
+            apiary_sites_local = request.data.get('apiary_sites_local')
+            if apiary_sites_local:
+                for site in json.loads(apiary_sites_local):
+                    #print(site.get('id'))
+                    #print(site.get('checked'))
+                    checked_value = bool(site.get('checked'))
+                    site_transfer_apiary_site = SiteTransferApiarySite.objects.get(
+                            proposal_apiary=proposal_obj.proposal_apiary, 
+                            apiary_site_id=site.get('id')
+                            )
+                    site_transfer_apiary_site.selected = checked_value
+                    site_transfer_apiary_site.save()
+
             selected_licence = proposal_apiary_data.get('selected_licence')
             if selected_licence:
                 approval = Approval.objects.get(id=selected_licence)
@@ -396,7 +409,6 @@ def save_proponent_data_apiary_site_transfer(proposal_obj, request, viewset):
 
             # save/update any additonal special propoerties here
             #proposal_obj.title = proposal_obj.proposal_apiary.title if hasattr(proposal_obj, 'proposal_apiary') else proposal_obj.title
-            proposal_obj.activity = proposal_obj.application_type.name
             proposal_obj.save()
 
         except Exception as e:
@@ -508,7 +520,6 @@ def save_proponent_data_apiary(proposal_obj, request, viewset):
 
             # save/update any additonal special propoerties here
             proposal_obj.title = proposal_obj.proposal_apiary.title if hasattr(proposal_obj, 'proposal_apiary') else proposal_obj.title
-            proposal_obj.activity = proposal_obj.application_type.name
             proposal_obj.save()
         except Exception as e:
             raise
