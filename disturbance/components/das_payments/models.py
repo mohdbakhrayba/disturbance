@@ -118,21 +118,8 @@ class ApplicationFee(Payment):
         app_label = 'disturbance'
 
 
-class AnnualRentFee(Payment):
-    PAYMENT_TYPE_INTERNET = 0
-    PAYMENT_TYPE_RECEPTION = 1
-    PAYMENT_TYPE_BLACK = 2
-    PAYMENT_TYPE_TEMPORARY = 3
-    PAYMENT_TYPE_CHOICES = (
-        (PAYMENT_TYPE_INTERNET, 'Internet booking'),
-        (PAYMENT_TYPE_RECEPTION, 'Reception booking'),
-        (PAYMENT_TYPE_BLACK, 'Black booking'),
-        (PAYMENT_TYPE_TEMPORARY, 'Temporary reservation'),
-    )
-
+class AnnualRentalFee(Payment):
     approval = models.ForeignKey(Approval, on_delete=models.PROTECT, blank=True, null=True, related_name='annual_rent_fees')
-    payment_type = models.SmallIntegerField(choices=PAYMENT_TYPE_CHOICES, default=0)
-    cost = models.DecimalField(max_digits=8, decimal_places=2, default='0.00')
     created_by = models.ForeignKey(EmailUser, on_delete=models.PROTECT, blank=True, null=True, related_name='created_by_annual_rent_fee')
 
     def __str__(self):
@@ -162,8 +149,8 @@ class ApplicationFeeInvoice(RevisionedMixin):
         return False
 
 
-class AnnualRentFeeInvoice(RevisionedMixin):
-    annual_rent_fee = models.ForeignKey(AnnualRentFee, related_name='annual_rent_fee_invoices')
+class AnnualRentalFeeInvoice(RevisionedMixin):
+    annual_rental_fee = models.ForeignKey(AnnualRentalFee, related_name='annual_rent_fee_invoices')
     invoice_reference = models.CharField(max_length=50, null=True, blank=True, default='')
 
     def __str__(self):
@@ -185,7 +172,7 @@ class AnnualRentFeeInvoice(RevisionedMixin):
 import reversion
 reversion.register(ApplicationFee, follow=['application_fee_invoices'])
 reversion.register(ApplicationFeeInvoice)
-reversion.register(AnnualRentFee, follow=['annual_rent_fee_invoices'])
-reversion.register(AnnualRentFeeInvoice)
+reversion.register(AnnualRentalFee, follow=['annual_rent_fee_invoices'])
+reversion.register(AnnualRentalFeeInvoice)
 
 

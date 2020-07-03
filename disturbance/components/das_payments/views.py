@@ -84,7 +84,8 @@ class ApplicationFeeView(TemplateView):
 
                 # Store site remainders data in this session, which is retrieved once payment success (ref: ApplicationFeeSuccessView below)
                 # then based on that, site remainders data is updated
-                request.session['db_processes'] = db_processes_after_success
+                if proposal.application_type.name != ApplicationType.SITE_TRANSFER:
+                    request.session['db_processes'] = db_processes_after_success
 
                 if proposal.application_type.name == ApplicationType.SITE_TRANSFER:
                     checkout_response = checkout(

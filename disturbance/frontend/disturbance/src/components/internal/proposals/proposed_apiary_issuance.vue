@@ -86,9 +86,10 @@
 
                 <template v-if="proposal && proposal.proposal_apiary.apiary_sites">
                     <ComponentSiteSelection
-                        :apiary_sites="proposal.proposal_apiary.apiary_sites"
+                        :apiary_sites="apiary_sites_prop"
                         :is_internal="true"
                         :is_external="false"
+                        :show_col_checkbox="showColCheckbox"
                         :key="component_site_selection_key"
                         ref="component_site_selection"
                         @apiary_sites_updated="apiarySitesUpdated"
@@ -122,6 +123,10 @@ export default {
     },
     props:{
         proposal_apiary_id: {
+            type: Number,
+            required: true
+        },
+        proposal_id: {
             type: Number,
             required: true
         },
@@ -207,7 +212,26 @@ export default {
         preview_licence_url: function() {
           return (this.proposal_id) ? `/preview/licence-pdf/${this.proposal_id}` : '';
         },
-
+        apiary_sites_prop: function() {
+            let apiary_sites = [];
+            if (this.proposal.application_type === 'Site Transfer') {
+                for (let site of this.proposal.proposal_apiary.site_transfer_apiary_sites) {
+                    if (site.selected) {
+                        apiary_sites.push(site.apiary_site);
+                    }
+                }
+            } else {
+                apiary_sites = this.proposal.proposal_apiary.apiary_sites;
+            }
+            return apiary_sites;
+        },
+        showColCheckbox: function() {
+            let checked = true;
+            if (this.proposal.proposal_apiary.application_type !== 'Site Transfer') {
+                checked = false;
+            }
+            return checked;
+        },
     },
     methods:{
         apiarySitesUpdated: function(apiary_sites) {

@@ -530,6 +530,10 @@ export default {
             if (this.proposal.application_type === 'Apiary') {
                 formData = this.attach_apiary_sites_data(formData);
             }
+            if (this.$refs.apiary_site_transfer && this.$refs.apiary_site_transfer.apiary_sites_local) {
+                //console.log(this.$refs.apiary_site_transfer.site_transfer_apiary_sites)
+                formData.append('apiary_sites_local', JSON.stringify(this.$refs.apiary_site_transfer.apiary_sites_local));
+            }
 
             vm.$http.post(vm.proposal_submit_url,formData).then(res=>{
                 /* after the above save, redirect to the Django post() method in ApplicationFeeView */
